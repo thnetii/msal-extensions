@@ -1,3 +1,5 @@
+using System.Collections.Generic;
+
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -14,7 +16,7 @@ namespace THNETII.MsalExtensions.Hosting
             typeof(ClientApplicationBase).Namespace!;
 
         public static IServiceCollection AddMsalNet(
-            this IServiceCollection services, string name)
+            this IServiceCollection services, string? name = default)
         {
             name ??= Options.DefaultName;
 
@@ -89,6 +91,11 @@ namespace THNETII.MsalExtensions.Hosting
         {
             return (msalLogLevel, message, containsPii) =>
             {
+                using var logScope = logger.BeginScope(new Dictionary<string, string>
+                {
+                    [msalLogLevel.GetType().FullName!] = msalLogLevel.ToString(),
+                    ["ContainsPersonalIdentifiableInformation"] = containsPii.ToString()
+                });
                 var logLevel = msalLogLevel switch
                 {
                     MsalLogLevel.Error => LogLevel.Error,
