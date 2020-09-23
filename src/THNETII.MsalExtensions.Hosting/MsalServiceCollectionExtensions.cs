@@ -50,8 +50,11 @@ namespace THNETII.MsalExtensions.Hosting
                 if (!(msalHttpFactory is null))
                     appBuilder.WithHttpClientFactory(msalHttpFactory);
 
-                return appBuilder.Build();
+                return appBuilder;
             });
+            services.AddTransient(serviceProvider => serviceProvider
+                .GetRequiredService<PublicClientApplicationBuilder>()
+                .Build());
 
             services.AddOptions<ConfidentialClientApplicationOptions>(name);
             services.AddTransient(serviceProvider =>
@@ -81,22 +84,22 @@ namespace THNETII.MsalExtensions.Hosting
                 if (!(msalHttpFactory is null))
                     appBuilder.WithHttpClientFactory(msalHttpFactory);
 
-                return appBuilder.Build();
+                return appBuilder;
             });
+            services.AddTransient(serviceProvider => serviceProvider
+                .GetRequiredService<ConfidentialClientApplicationBuilder>()
+                .Build());
 
             return services;
         }
 
         private static LogCallback GetMsalLogCallback(this ILogger logger)
         {
-            return (msalLogLevel, message, containsPii) =>
+            return (level, message, containsPii) =>
             {
-                using var logScope = logger.BeginScope(new Dictionary<string, string>
-                {
-                    [msalLogLevel.GetType().FullName!] = msalLogLevel.ToString(),
-                    ["ContainsPersonalIdentifiableInformation"] = containsPii.ToString()
-                });
-                var logLevel = msalLogLevel switch
+                using var s_lvl = logger.BeginScope($"{nameof(level)}: {{{nameof(level)}}}", level);
+                using var s_pii = logger.BeginScope($"{nameof(containsPii)}: {{{nameof(containsPii)}}}", containsPii);
+                var logLevel = level switch
                 {
                     MsalLogLevel.Error => LogLevel.Error,
                     MsalLogLevel.Warning => LogLevel.Warning,
