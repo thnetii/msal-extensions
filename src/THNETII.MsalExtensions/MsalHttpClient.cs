@@ -1,9 +1,7 @@
-﻿using System;
+using System;
 using System.Net.Http;
 
-using Microsoft.Identity.Client;
-
-namespace THNETII.MsalExtensions.Hosting
+namespace Microsoft.Identity.Client
 {
     public class MsalHttpClient : IMsalHttpClientFactory
     {
