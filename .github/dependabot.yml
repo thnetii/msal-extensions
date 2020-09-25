@@ -18,3 +18,11 @@ updates:
   assignees:
     - "fredrikhr"
 # update marker:   end {3B97A1F7-ABCD-4B65-A500-C5433E05C626}
+# update marker: begin {c493dddb-f5a8-4c45-a32c-31f1daed5f7f}
+- package-ecosystem:  "gitsubmodule"
+  directory:          "/"
+  schedule:
+    interval:         "daily"
+  assignees:
+    - "fredrikhr"
+# update marker:   end {c493dddb-f5a8-4c45-a32c-31f1daed5f7f}
