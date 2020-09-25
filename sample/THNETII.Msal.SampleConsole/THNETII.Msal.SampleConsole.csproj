@@ -1,0 +1,25 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFrameworks>netcoreapp3.1</TargetFrameworks>
+    <TargetFrameworks Condition="$([System.Runtime.InteropServices.RuntimeInformation]::ISOsPlatform($([System.Runtime.InteropServices.OSPlatform]::Windows)))"
+                      >$(TargetFrameworks);net461</TargetFrameworks>
+  </PropertyGroup>
+
+  <ItemGroup Label="MSAL.NET">
+    <ProjectReference Include="..\..\src\THNETII.MsalExtensions\THNETII.MsalExtensions.csproj" />
+  </ItemGroup>
+
+  <ItemGroup Label=".NET Generic Host">
+    <ProjectReference Include="..\..\command-line-extensions\src\THNETII.CommandLine.Hosting\THNETII.CommandLine.Hosting.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="appsettings.json;appsettings.*.json" />
+    <EmbeddedResource Update="appsettings.*.json">
+      <DependentUpon>appsettings.json</DependentUpon>
+    </EmbeddedResource>
+  </ItemGroup>
+
+</Project>
