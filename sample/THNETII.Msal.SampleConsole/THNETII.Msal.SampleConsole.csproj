@@ -1,10 +1,10 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <TargetFrameworks>netcoreapp3.1</TargetFrameworks>
-    <TargetFrameworks Condition="$([System.Runtime.InteropServices.RuntimeInformation]::ISOsPlatform($([System.Runtime.InteropServices.OSPlatform]::Windows)))"
-                      >$(TargetFrameworks);net461</TargetFrameworks>
+    <TargetFrameworks Condition="$([System.Runtime.InteropServices.RuntimeInformation]::ISOsPlatform($([System.Runtime.InteropServices.OSPlatform]::Windows)))">$(TargetFrameworks);net461</TargetFrameworks>
+    <UserSecretsId>ec95aa71-d3c6-43ef-906b-653a942cf97e</UserSecretsId>
   </PropertyGroup>
 
   <ItemGroup Label="MSAL.NET">
@@ -12,6 +12,7 @@
   </ItemGroup>
 
   <ItemGroup Label=".NET Generic Host">
+    <PackageReference Include="Microsoft.Extensions.Configuration.UserSecrets" Version="3.1.8" />
     <ProjectReference Include="..\..\command-line-extensions\src\THNETII.CommandLine.Hosting\THNETII.CommandLine.Hosting.csproj" />
   </ItemGroup>
 

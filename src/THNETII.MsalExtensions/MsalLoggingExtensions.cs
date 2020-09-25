@@ -20,6 +20,7 @@ namespace Microsoft.Identity.Client
 
             var builderName = typeof(T).Name!;
             const string builderSuffix = "Builder";
+            string prefix = typeof(T).Namespace + ".";
             string categoryName = builderName.IndexOf(builderSuffix,
                 StringComparison.OrdinalIgnoreCase) switch
             {
@@ -27,7 +28,7 @@ namespace Microsoft.Identity.Client
                 0 => typeof(AbstractApplicationBuilder<>).Namespace!,
                 int idx => builderName.Substring(0, idx),
             };
-            var logger = loggerFactory.CreateLogger(categoryName);
+            var logger = loggerFactory.CreateLogger(prefix + categoryName);
             var logCallback = logger.GetMsalLogCallback();
 
             return appBuilder.WithLogging(logCallback, MsalLogLevel.Verbose);
@@ -49,7 +50,21 @@ namespace Microsoft.Identity.Client
                     _ => ExtLogLevel.None
                 };
 
-                logger.Log(logLevel, message);
+                var messageSpan = message is null
+                    ? ReadOnlySpan<char>.Empty
+                    : message.AsSpan();
+                messageSpan = messageSpan.TrimStart();
+                var parenPiiBoolPrefix = containsPii
+                    ? "(" + bool.TrueString + ")"
+                    : "(" + bool.FalseString + ")";
+                if (messageSpan.StartsWith(parenPiiBoolPrefix.AsSpan(), StringComparison.OrdinalIgnoreCase))
+                {
+                    messageSpan = messageSpan.Slice(parenPiiBoolPrefix.Length);
+                    messageSpan = messageSpan.TrimStart();
+                }
+                messageSpan = messageSpan.TrimEnd();
+
+                logger.Log(logLevel, messageSpan.ToString());
             };
         }
     }
