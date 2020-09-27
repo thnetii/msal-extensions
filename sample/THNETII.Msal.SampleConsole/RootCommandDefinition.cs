@@ -1,19 +1,21 @@
-using System;
 using System.CommandLine;
+
+using Microsoft.Identity.Client;
 
 using THNETII.CommandLine.Hosting;
 
 namespace THNETII.Msal.SampleConsole
 {
-    public class CommandLineDefinition : CommandLineHostDefinition
+    public class RootCommandDefinition : CommandLineHostingDefinition<LogAppConfigExecutor>
     {
-        public CommandLineDefinition(Type executorType) : base(executorType)
+        public RootCommandDefinition() : base()
         {
-            Command = new RootCommand(GetAssemblyDescription(executorType))
-            { Handler = GetCommandHandler(executorType) };
+            Command = new RootCommand(GetAssemblyDescription())
+            { Handler = CommandHandler };
 
             ClientIdOption = new Option<string>("--clientid")
             {
+                Name = nameof(ApplicationOptions.ClientId),
                 Description = "Client ID",
                 Argument = { Name = "CLIENTID" }
             };
@@ -22,6 +24,7 @@ namespace THNETII.Msal.SampleConsole
 
             ClientSecretOption = new Option<string>("--secret")
             {
+                Name = nameof(ConfidentialClientApplicationOptions.ClientSecret),
                 Description = "Client Secret (Confidential Apps only)",
                 Argument = { Name = "SECRET" }
             };
@@ -30,6 +33,7 @@ namespace THNETII.Msal.SampleConsole
 
             TenantIdOption = new Option<string>("--tenant")
             {
+                Name = nameof(ApplicationOptions.TenantId),
                 Description = "Tenant ID (aka. Realm)",
                 Argument = { Name = "TENANT" }
             };
@@ -38,6 +42,7 @@ namespace THNETII.Msal.SampleConsole
 
             InstanceOption = new Option<string>("--instance")
             {
+                Name = nameof(ApplicationOptions.Instance),
                 Description = "Azure AD instance URL",
                 Argument = { Name = "INSTANCE" }
             };
@@ -45,6 +50,7 @@ namespace THNETII.Msal.SampleConsole
 
             PiiLoggingOption = new Option<bool>("--pii-logging")
             {
+                Name = nameof(ApplicationOptions.EnablePiiLogging),
                 Description = "Enable loggig of Personal Identifiable Information",
             };
             Command.AddOption(PiiLoggingOption);

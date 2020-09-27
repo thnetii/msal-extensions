@@ -1,34 +1,35 @@
-﻿using System;
-using System.CommandLine.Binding;
-using System.CommandLine.Hosting;
+using System;
 using System.Linq;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.Identity.Client;
 
-namespace THNETII.Msal.SampleConsole.DeviceCodeToken
+using THNETII.CommandLine.Hosting;
+
+namespace THNETII.Msal.SampleConsole
 {
-    public class DeviceCodeExecutor
+    public class DeviceCodeCommandExecutor : ICommandLineExecutor
     {
         private readonly ILogger deviceCodeLogger;
         private readonly IPublicClientApplication app;
-        private readonly DeviceCodeOptions deviceCodeOptions;
+        private readonly AcquireTokenOptions acquireTokenOptions;
         private readonly Func<DeviceCodeResult, Task> deviceCodeResultCallback;
 
-        public DeviceCodeExecutor(
+        public DeviceCodeCommandExecutor(
             IHttpClientFactory httpClientFactory,
-            IOptions<DeviceCodeOptions> deviceCodeOptions,
+            IOptions<AcquireTokenOptions> acquireTokenOptions,
             IOptions<PublicClientApplicationOptions> appOptions,
             ILoggerFactory? loggerFactory = null)
         {
-            var opts = appOptions?.Value ?? throw new ArgumentNullException(nameof(appOptions));
-            this.deviceCodeOptions = deviceCodeOptions?.Value ??
-                throw new ArgumentNullException(nameof(deviceCodeOptions));
+            var opts = appOptions?.Value
+                ?? throw new ArgumentNullException(nameof(appOptions));
+
+            this.acquireTokenOptions = acquireTokenOptions?.Value ??
+                throw new ArgumentNullException(nameof(acquireTokenOptions));
 
             loggerFactory ??= Microsoft.Extensions.Logging.Abstractions
                 .NullLoggerFactory.Instance;
@@ -47,9 +48,9 @@ namespace THNETII.Msal.SampleConsole.DeviceCodeToken
             deviceCodeResultCallback = DeviceCodeUserInteractionCallback;
         }
 
-        public async Task RunAsync(CancellationToken cancelToken = default)
+        public async Task<int> RunAsync(CancellationToken cancelToken = default)
         {
-            var scopes = deviceCodeOptions.Scopes ?? Enumerable.Empty<string>();
+            var scopes = acquireTokenOptions.Scopes ?? Enumerable.Empty<string>();
             var flowBuilder = app
                 .AcquireTokenWithDeviceCode(scopes, deviceCodeResultCallback);
 
@@ -57,6 +58,8 @@ namespace THNETII.Msal.SampleConsole.DeviceCodeToken
                 .ConfigureAwait(continueOnCapturedContext: false);
 
             _ = authResult;
+
+            return 0;
         }
 
         private Task DeviceCodeUserInteractionCallback(DeviceCodeResult dcr)
@@ -73,20 +76,6 @@ namespace THNETII.Msal.SampleConsole.DeviceCodeToken
             static IDisposable BeginScope(ILogger logger, object value,
                 string name) =>
                 logger.BeginScope($"{name}: {{{name}}}", value);
-        }
-
-        internal static void ConfigureServices(IServiceCollection services)
-        {
-            services.AddSingleton(serviceProvider =>
-            {
-                var definition = serviceProvider
-                    .GetRequiredService<DeviceCodeDefinition>();
-                var modelBinder = new ModelBinder<DeviceCodeOptions>();
-                modelBinder.BindMemberFromValue(_ => _.Scopes, definition.ScopesArgument);
-                return modelBinder;
-            });
-            services.AddOptions<DeviceCodeOptions>()
-                .BindCommandLine();
         }
     }
 }
