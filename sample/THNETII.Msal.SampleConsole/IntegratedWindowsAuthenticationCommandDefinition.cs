@@ -14,7 +14,7 @@ namespace THNETII.Msal.SampleConsole
 
             UserNameOption = new Option<string>("--username")
             {
-                Name = nameof(AcquireTokenOptions.Username),
+                Name = nameof(IntegratedWindowsAuthenticationAcquireTokenOptions.Username),
                 Description = "User Principal Name to authenticate",
                 Argument = { Name = "UPN" }
             };
@@ -23,7 +23,7 @@ namespace THNETII.Msal.SampleConsole
 
             ScopesArgument = new Argument<string[]>()
             {
-                Name = nameof(AcquireTokenOptions.Scopes),
+                Name = nameof(IntegratedWindowsAuthenticationAcquireTokenOptions.Scopes),
                 Description = "Requested access scopes",
                 Arity = ArgumentArity.ZeroOrMore
             };

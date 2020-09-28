@@ -8,29 +8,23 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.Identity.Client;
 
-using THNETII.CommandLine.Hosting;
-
 namespace THNETII.Msal.SampleConsole
 {
-    public class DeviceCodeCommandExecutor : ICommandLineExecutor
+    public class DeviceCodeCommandExecutor
+        : PublicClientApplicationAcquireTokenExecutor
     {
         private readonly ILogger deviceCodeLogger;
-        private readonly IPublicClientApplication app;
-        private readonly AcquireTokenOptions acquireTokenOptions;
         private readonly Func<DeviceCodeResult, Task> deviceCodeResultCallback;
 
         public DeviceCodeCommandExecutor(
             IHttpClientFactory httpClientFactory,
             IOptions<AcquireTokenOptions> acquireTokenOptions,
             IOptions<PublicClientApplicationOptions> appOptions,
+            MsalTokenCacheStorageProvider cacheStorageProvider,
             ILoggerFactory? loggerFactory = null)
+            : base(httpClientFactory, acquireTokenOptions, appOptions,
+                  cacheStorageProvider, loggerFactory)
         {
-            var opts = appOptions?.Value
-                ?? throw new ArgumentNullException(nameof(appOptions));
-
-            this.acquireTokenOptions = acquireTokenOptions?.Value ??
-                throw new ArgumentNullException(nameof(acquireTokenOptions));
-
             loggerFactory ??= Microsoft.Extensions.Logging.Abstractions
                 .NullLoggerFactory.Instance;
 
@@ -38,28 +32,18 @@ namespace THNETII.Msal.SampleConsole
                 "." + nameof(DeviceCodeResult.DeviceCode);
             deviceCodeLogger = loggerFactory.CreateLogger(deviceCodeCategory);
 
-            var appBuilder = PublicClientApplicationBuilder
-                .CreateWithApplicationOptions(opts)
-                .WithLoggerFactory(loggerFactory);
-            if (!(httpClientFactory is null))
-                appBuilder.WithHttpClientFactory(httpClientFactory);
-            app = appBuilder.Build();
-
             deviceCodeResultCallback = DeviceCodeUserInteractionCallback;
         }
 
-        public async Task<int> RunAsync(CancellationToken cancelToken = default)
+        protected override Task<AuthenticationResult> ExecuteAcquireToken(
+            IPublicClientApplication app, AcquireTokenOptions options,
+            CancellationToken cancelToken = default)
         {
-            var scopes = acquireTokenOptions.Scopes ?? Enumerable.Empty<string>();
-            var flowBuilder = app
-                .AcquireTokenWithDeviceCode(scopes, deviceCodeResultCallback);
+            _ = app ?? throw new ArgumentNullException(nameof(app));
 
-            var authResult = await flowBuilder.ExecuteAsync(cancelToken)
-                .ConfigureAwait(continueOnCapturedContext: false);
-
-            _ = authResult;
-
-            return 0;
+            var scopes = options?.Scopes ?? Enumerable.Empty<string>();
+            var auth = app.AcquireTokenWithDeviceCode(scopes, deviceCodeResultCallback);
+            return auth.ExecuteAsync(cancelToken);
         }
 
         private Task DeviceCodeUserInteractionCallback(DeviceCodeResult dcr)

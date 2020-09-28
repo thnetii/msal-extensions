@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Options;
 using Microsoft.Identity.Client;
 
 using THNETII.CommandLine.Hosting;
@@ -22,6 +23,7 @@ namespace THNETII.Msal.SampleConsole
             var definition = new RootCommandDefinition();
             definition.AddSubCommandDefinition(new DeviceCodeCommandDefinition());
             definition.AddSubCommandDefinition(new IntegratedWindowsAuthenticationCommandDefinition());
+            definition.AddSubCommandDefinition(new SilentCommandDefinition());
             var cmdParser = new CommandLineBuilder(definition.Command)
                 .UseDefaults()
                 .UseHostingDefinition(definition, CreateHostBuilder)
@@ -58,11 +60,40 @@ namespace THNETII.Msal.SampleConsole
                 .BindCommandLine()
                 .PostConfigure(PostConfigureAbstractApplicationOptions)
                 ;
+
             services.AddOptions<AcquireTokenOptions>()
                 .Configure<IConfiguration>((opts, config) =>
                     config.Bind("AcquireToken", opts))
                 .BindCommandLine()
                 ;
+            services.AddOptions<IntegratedWindowsAuthenticationAcquireTokenOptions>()
+                .Configure<IConfiguration>((opts, config) =>
+                    config.Bind("AcquireToken", opts))
+                .BindCommandLine()
+                ;
+            services.AddOptions<SilentAcquireTokenOptions>()
+                .Configure<IConfiguration>((opts, config) =>
+                    config.Bind("AcquireToken", opts))
+                .BindCommandLine()
+                .Validate(opts =>
+                {
+                    if (string.IsNullOrEmpty(opts.AccountIdentifier))
+                        throw new OptionsValidationException(
+                            Options.DefaultName, opts.GetType(),
+                            new[] { $"{nameof(opts.AccountIdentifier)} must be specified." }
+                            );
+                    return true;
+                })
+                ;
+
+            services.AddOptions<MsalTokenCacheStorageOptions>()
+                .Configure(opts => opts.ApplicationAssembly = typeof(Program).Assembly)
+                .Configure<IOptions<PublicClientApplicationOptions>>(
+                    (opts, pca) => opts.ClientId = pca.Value.ClientId)
+                .Configure<IOptions<ConfidentialClientApplicationOptions>>(
+                    (opts, cca) => opts.ClientId = cca.Value.ClientId)
+                ;
+            services.AddScoped<MsalTokenCacheStorageProvider>();
         }
 
         private static void PostConfigureAbstractApplicationOptions(

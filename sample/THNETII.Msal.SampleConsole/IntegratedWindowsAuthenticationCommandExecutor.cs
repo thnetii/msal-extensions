@@ -8,55 +8,34 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.Identity.Client;
 
-using THNETII.CommandLine.Hosting;
-
 namespace THNETII.Msal.SampleConsole
 {
     public class IntegratedWindowsAuthenticationCommandExecutor
-        : ICommandLineExecutor
+        : PublicClientApplicationAcquireTokenExecutor
     {
-        private readonly IPublicClientApplication app;
-        private readonly AcquireTokenOptions acquireTokenOptions;
-
         public IntegratedWindowsAuthenticationCommandExecutor(
             IHttpClientFactory httpClientFactory,
-            IOptions<AcquireTokenOptions> acquireTokenOptions,
+            IOptions<IntegratedWindowsAuthenticationAcquireTokenOptions> acquireTokenOptions,
             IOptions<PublicClientApplicationOptions> appOptions,
+            MsalTokenCacheStorageProvider cacheStorageProvider,
             ILoggerFactory? loggerFactory = null)
+            : base(httpClientFactory, acquireTokenOptions, appOptions, cacheStorageProvider, loggerFactory) { }
+
+        protected override Task<AuthenticationResult> ExecuteAcquireToken(
+            IPublicClientApplication app,
+            AcquireTokenOptions options,
+            CancellationToken cancelToken = default)
         {
-            var opts = appOptions?.Value
-                ?? throw new ArgumentNullException(nameof(appOptions));
+            _ = app ?? throw new ArgumentNullException(nameof(app));
 
-            this.acquireTokenOptions = acquireTokenOptions?.Value ??
-                throw new ArgumentNullException(nameof(acquireTokenOptions));
+            var iwaOptions = options as IntegratedWindowsAuthenticationAcquireTokenOptions;
 
-            loggerFactory ??= Microsoft.Extensions.Logging.Abstractions
-                .NullLoggerFactory.Instance;
-
-            var appBuilder = PublicClientApplicationBuilder
-                .CreateWithApplicationOptions(opts)
-                .WithLoggerFactory(loggerFactory);
-            if (!(httpClientFactory is null))
-                appBuilder.WithHttpClientFactory(httpClientFactory);
-            app = appBuilder.Build();
-        }
-
-        public async Task<int> RunAsync(CancellationToken cancelToken = default)
-        {
-            var scopes = acquireTokenOptions.Scopes ?? Enumerable.Empty<string>();
-            var username = acquireTokenOptions.Username;
-
-            var flowBuilder = app
-                .AcquireTokenByIntegratedWindowsAuth(scopes);
-            if (!string.IsNullOrEmpty(username))
-                flowBuilder = flowBuilder.WithUsername(username);
-
-            var authResult = await flowBuilder.ExecuteAsync(cancelToken)
-                .ConfigureAwait(continueOnCapturedContext: false);
-
-            _ = authResult;
-
-            return 0;
+            var scopes = iwaOptions?.Scopes ?? Enumerable.Empty<string>();
+            var auth = app.AcquireTokenByIntegratedWindowsAuth(scopes);
+            if (iwaOptions?.Username is string username &&
+                !string.IsNullOrEmpty(username))
+                auth.WithUsername(username);
+            return auth.ExecuteAsync(cancelToken);
         }
     }
 }
