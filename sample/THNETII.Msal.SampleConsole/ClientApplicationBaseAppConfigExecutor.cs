@@ -1,78 +1,34 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics.CodeAnalysis;
+﻿using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
-using System.Net.Http;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
 using Microsoft.Identity.Client;
-
-using THNETII.CommandLine.Hosting;
 
 namespace THNETII.Msal.SampleConsole
 {
-    public class LogAppConfigExecutor : ICommandLineExecutor
+    public abstract class ClientApplicationBaseAppConfigExecutor
+        : ClientApplicationBaseExecutor
     {
-        private readonly ILogger logger;
-        private readonly IHttpClientFactory httpClientFactory;
-        private readonly PublicClientApplicationOptions pcaOptions;
-        private readonly ILoggerFactory loggerFactory;
-
-        public LogAppConfigExecutor(
-            IHttpClientFactory httpClientFactory,
-            IOptions<PublicClientApplicationOptions> pcaOptions,
+        protected ClientApplicationBaseAppConfigExecutor(
+            MsalTokenCacheStorageProvider cacheStorageProvider,
             ILoggerFactory? loggerFactory = null)
+            : base(cacheStorageProvider, loggerFactory) { }
+
+        protected override Task<int> ExecuteAsync(CancellationToken cancelToken)
         {
-            this.httpClientFactory = httpClientFactory
-                ?? throw new ArgumentNullException(nameof(httpClientFactory));
-
-            this.pcaOptions = pcaOptions?.Value
-                ?? throw new ArgumentNullException(nameof(pcaOptions));
-
-            this.loggerFactory = loggerFactory ?? Microsoft.Extensions.Logging
-                .Abstractions.NullLoggerFactory.Instance;
-            logger = this.loggerFactory.CreateLogger(GetType());
-
-        }
-
-        [SuppressMessage("Design",
-            "CA1031: Do not catch general exception types",
-            Justification = "Sample code, exceptions are logged")]
-        public Task<int> RunAsync(CancellationToken cancelToken = default)
-        {
-            using var httpClient = httpClientFactory.CreateClient();
-            try
-            {
-                var pcaApp = PublicClientApplicationBuilder
-                    .CreateWithApplicationOptions(pcaOptions)
-                    .WithHttpClient(httpClient)
-                    .WithLoggerFactory(loggerFactory)
-                    .Build();
-
-                _ = pcaApp;
-
-                var eventId = new EventId(1, "PublicClientApplication");
-                LogAppConfig(eventId, pcaApp.AppConfig);
-            }
-            catch (Exception pcaExcept)
-            {
-                logger.LogError(pcaExcept, pcaExcept.Message);
-            }
-
+            LogAppConfig(BaseApplication.AppConfig);
             return Task.FromResult(0);
         }
 
-        private void LogAppConfig(EventId eventId, IAppConfig appConfig)
+        private void LogAppConfig(IAppConfig appConfig)
         {
-            static string GetMessage(string name) =>
-                    $"{name}: {{{name}}}";
+            static string GetMessage(string name) => $"{name}: {{{name}}}";
 
-            using (logger.BeginScope(GetMessage(nameof(IClientApplicationBase.AppConfig)), appConfig))
+            using (Logger.BeginScope(GetMessage(nameof(IClientApplicationBase.AppConfig)), appConfig))
             {
                 var messageText = new StringBuilder();
                 var messageArgs = new List<object?>();
@@ -138,9 +94,10 @@ namespace THNETII.Msal.SampleConsole
                     messageArgs.Add(cert);
                 }
 
-                logger.LogInformation(eventId, messageText.ToString().Trim(),
+                Logger.LogInformation(messageText.ToString().Trim(),
                     messageArgs.ToArray());
             }
         }
+
     }
 }

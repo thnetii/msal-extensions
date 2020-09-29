@@ -15,16 +15,16 @@ namespace THNETII.Msal.SampleConsole
     {
         private readonly ILogger deviceCodeLogger;
         private readonly Func<DeviceCodeResult, Task> deviceCodeResultCallback;
+        private readonly AcquireTokenOptions acquireTokenOptions;
 
         public DeviceCodeCommandExecutor(
-            IHttpClientFactory httpClientFactory,
+            IServiceProvider serviceProvider,
             IOptions<AcquireTokenOptions> acquireTokenOptions,
-            IOptions<PublicClientApplicationOptions> appOptions,
-            MsalTokenCacheStorageProvider cacheStorageProvider,
             ILoggerFactory? loggerFactory = null)
-            : base(httpClientFactory, acquireTokenOptions, appOptions,
-                  cacheStorageProvider, loggerFactory)
+            : base(serviceProvider)
         {
+            this.acquireTokenOptions = acquireTokenOptions?.Value
+                ?? throw new ArgumentNullException(nameof(acquireTokenOptions));
             loggerFactory ??= Microsoft.Extensions.Logging.Abstractions
                 .NullLoggerFactory.Instance;
 
@@ -36,13 +36,11 @@ namespace THNETII.Msal.SampleConsole
         }
 
         protected override Task<AuthenticationResult> ExecuteAcquireToken(
-            IPublicClientApplication app, AcquireTokenOptions options,
             CancellationToken cancelToken = default)
         {
-            _ = app ?? throw new ArgumentNullException(nameof(app));
-
-            var scopes = options?.Scopes ?? Enumerable.Empty<string>();
-            var auth = app.AcquireTokenWithDeviceCode(scopes, deviceCodeResultCallback);
+            var scopes = acquireTokenOptions?.Scopes ?? Enumerable.Empty<string>();
+            var auth = Application
+                .AcquireTokenWithDeviceCode(scopes, deviceCodeResultCallback);
             return auth.ExecuteAsync(cancelToken);
         }
 

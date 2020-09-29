@@ -6,12 +6,11 @@ using THNETII.CommandLine.Hosting;
 
 namespace THNETII.Msal.SampleConsole
 {
-    public class RootCommandDefinition : CommandLineHostingDefinition<LogAppConfigExecutor>
+    public class RootCommandDefinition : CommandLineGroupHostingDefinition
     {
         public RootCommandDefinition() : base()
         {
-            Command = new RootCommand(GetAssemblyDescription())
-            { Handler = CommandHandler };
+            Command = new RootCommand(GetAssemblyDescription(typeof(Program)));
 
             ClientIdOption = new Option<string>("--clientid")
             {
@@ -21,15 +20,6 @@ namespace THNETII.Msal.SampleConsole
             };
             ClientIdOption.AddAlias("-c");
             Command.AddOption(ClientIdOption);
-
-            ClientSecretOption = new Option<string>("--secret")
-            {
-                Name = nameof(ConfidentialClientApplicationOptions.ClientSecret),
-                Description = "Client Secret (Confidential Apps only)",
-                Argument = { Name = "SECRET" }
-            };
-            ClientSecretOption.AddAlias("-s");
-            Command.AddOption(ClientSecretOption);
 
             TenantIdOption = new Option<string>("--tenant")
             {
@@ -58,7 +48,6 @@ namespace THNETII.Msal.SampleConsole
 
         public override Command Command { get; }
         public Option<string> ClientIdOption { get; }
-        public Option<string> ClientSecretOption { get; }
         public Option<string> TenantIdOption { get; }
         public Option<string> InstanceOption { get; }
         public Option<bool> PiiLoggingOption { get; }

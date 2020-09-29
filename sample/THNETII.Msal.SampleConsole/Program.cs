@@ -21,9 +21,19 @@ namespace THNETII.Msal.SampleConsole
         public static async Task<int> Main(string[] args)
         {
             var definition = new RootCommandDefinition();
-            definition.AddSubCommandDefinition(new DeviceCodeCommandDefinition());
-            definition.AddSubCommandDefinition(new IntegratedWindowsAuthenticationCommandDefinition());
-            definition.AddSubCommandDefinition(new SilentCommandDefinition());
+
+            var pcaDefinition = new PublicClientDefinition();
+            definition.AddSubCommandDefinition(pcaDefinition);
+            pcaDefinition.AddSubCommandDefinition(new DeviceCodeCommandDefinition());
+            pcaDefinition.AddSubCommandDefinition(new IntegratedWindowsAuthenticationCommandDefinition());
+            pcaDefinition.AddSubCommandDefinition(new AccountCommandDefinition<PublicClientAccountsExecutor>());
+            pcaDefinition.AddSubCommandDefinition(new SilentCommandDefinition<PublicClientSilentCommandExecutor>());
+
+            var ccaDefinition = new ConfidentialClientDefinition();
+            definition.AddSubCommandDefinition(ccaDefinition);
+            ccaDefinition.AddSubCommandDefinition(new AccountCommandDefinition<ConfidentialClientAccountsExecutor>());
+            ccaDefinition.AddSubCommandDefinition(new SilentCommandDefinition<ConfidentialClientSilentCommandExecutor>());
+
             var cmdParser = new CommandLineBuilder(definition.Command)
                 .UseDefaults()
                 .UseHostingDefinition(definition, CreateHostBuilder)
@@ -75,15 +85,6 @@ namespace THNETII.Msal.SampleConsole
                 .Configure<IConfiguration>((opts, config) =>
                     config.Bind("AcquireToken", opts))
                 .BindCommandLine()
-                .Validate(opts =>
-                {
-                    if (string.IsNullOrEmpty(opts.AccountIdentifier))
-                        throw new OptionsValidationException(
-                            Options.DefaultName, opts.GetType(),
-                            new[] { $"{nameof(opts.AccountIdentifier)} must be specified." }
-                            );
-                    return true;
-                })
                 ;
 
             services.AddOptions<MsalTokenCacheStorageOptions>()

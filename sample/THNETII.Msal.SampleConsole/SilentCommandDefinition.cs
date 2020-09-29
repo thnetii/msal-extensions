@@ -1,11 +1,10 @@
 using System.CommandLine;
 
-using THNETII.CommandLine.Hosting;
-
 namespace THNETII.Msal.SampleConsole
 {
-    public class SilentCommandDefinition
-        : CommandLineHostingDefinition<SilentCommandExecutor>
+    public class SilentCommandDefinition<TExecutor>
+        : AcquireTokenCommandDefinition<TExecutor>
+        where TExecutor : ClientApplicationBaseSilentCommandExecutor
     {
         public SilentCommandDefinition()
         {
@@ -16,7 +15,7 @@ namespace THNETII.Msal.SampleConsole
             {
                 Name = nameof(SilentAcquireTokenOptions.AccountIdentifier),
                 Description = "Previously acquired Account identifier",
-                Argument = { Name = "ACCOUNT" }
+                Argument = { Name = "ACCOUNTID" }
             };
             AccountOption.AddAlias("-a");
             Command.AddOption(AccountOption);
@@ -28,18 +27,11 @@ namespace THNETII.Msal.SampleConsole
             };
             Command.AddOption(ForceRefreshOption);
 
-            ScopesArgument = new Argument<string[]>()
-            {
-                Name = nameof(SilentAcquireTokenOptions.Scopes),
-                Description = "Requested access scopes",
-                Arity = ArgumentArity.ZeroOrMore
-            };
-            Command.AddArgument(ScopesArgument);
+            Command.AddOption(ScopesOption);
         }
 
         public override Command Command { get; }
         public Option<string> AccountOption { get; }
-        public Argument<string[]> ScopesArgument { get; }
         public Option<bool> ForceRefreshOption { get; }
     }
 }

@@ -1,11 +1,9 @@
 using System.CommandLine;
 
-using THNETII.CommandLine.Hosting;
-
 namespace THNETII.Msal.SampleConsole
 {
     public class IntegratedWindowsAuthenticationCommandDefinition
-        : CommandLineHostingDefinition<IntegratedWindowsAuthenticationCommandExecutor>
+        : AcquireTokenCommandDefinition<IntegratedWindowsAuthenticationCommandExecutor>
     {
         public IntegratedWindowsAuthenticationCommandDefinition()
         {
@@ -21,17 +19,10 @@ namespace THNETII.Msal.SampleConsole
             UserNameOption.AddAlias("-u");
             Command.AddOption(UserNameOption);
 
-            ScopesArgument = new Argument<string[]>()
-            {
-                Name = nameof(IntegratedWindowsAuthenticationAcquireTokenOptions.Scopes),
-                Description = "Requested access scopes",
-                Arity = ArgumentArity.ZeroOrMore
-            };
-            Command.AddArgument(ScopesArgument);
+            Command.AddOption(ScopesOption);
         }
 
         public override Command Command { get; }
         public Option<string> UserNameOption { get; }
-        public Argument<string[]> ScopesArgument { get; }
     }
 }

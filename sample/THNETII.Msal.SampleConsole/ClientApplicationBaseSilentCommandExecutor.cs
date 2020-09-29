@@ -1,6 +1,5 @@
-using System;
+﻿using System;
 using System.Linq;
-using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -10,34 +9,30 @@ using Microsoft.Identity.Client;
 
 namespace THNETII.Msal.SampleConsole
 {
-    public class SilentCommandExecutor
-        : PublicClientApplicationAcquireTokenExecutor
+    public abstract class ClientApplicationBaseSilentCommandExecutor
+        : ClientApplicationBaseAcquireTokenExecutor
     {
         private readonly SilentAcquireTokenOptions silentOptions;
 
-        public SilentCommandExecutor(IHttpClientFactory httpClientFactory,
+        protected ClientApplicationBaseSilentCommandExecutor(
             IOptions<SilentAcquireTokenOptions> acquireTokenOptions,
-            IOptions<PublicClientApplicationOptions> appOptions,
             MsalTokenCacheStorageProvider cacheStorageProvider,
             ILoggerFactory? loggerFactory = null)
-            : base(httpClientFactory, acquireTokenOptions, appOptions,
-                  cacheStorageProvider, loggerFactory)
+            : base(cacheStorageProvider, loggerFactory)
         {
-            silentOptions = acquireTokenOptions.Value;
+            silentOptions = acquireTokenOptions?.Value
+                ?? throw new ArgumentNullException(nameof(acquireTokenOptions));
         }
 
         protected override async Task<AuthenticationResult> ExecuteAcquireToken(
-            IPublicClientApplication app, AcquireTokenOptions options,
             CancellationToken cancelToken = default)
         {
-            _ = app ?? throw new ArgumentNullException(nameof(app));
-
-            var account = await app
+            var account = await BaseApplication
                 .GetAccountAsync(silentOptions.AccountIdentifier)
                 .ConfigureAwait(continueOnCapturedContext: false);
 
-            var scopes = options?.Scopes ?? Enumerable.Empty<string>();
-            var auth = app.AcquireTokenSilent(scopes, account);
+            var scopes = silentOptions.Scopes ?? Enumerable.Empty<string>();
+            var auth = BaseApplication.AcquireTokenSilent(scopes, account);
             if (silentOptions.ForceRefresh.HasValue)
             {
                 bool forceRefresh = silentOptions.ForceRefresh.Value;
