@@ -1,8 +1,11 @@
 using System;
+using System.Collections;
+using System.Collections.Generic;
 using System.CommandLine;
 using System.CommandLine.Builder;
 using System.CommandLine.Hosting;
 using System.CommandLine.Parsing;
+using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
 
@@ -10,6 +13,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
+using Microsoft.Graph;
 using Microsoft.Identity.Client;
 
 using THNETII.CommandLine.Hosting;
@@ -57,6 +61,7 @@ namespace THNETII.Msal.SampleConsole
         private static void ConfigureServices(IServiceCollection services)
         {
             services.AddHttpClient();
+            services.AddHttpClient<GraphServiceClient>();
 
             services.AddOptions<PublicClientApplicationOptions>()
                 .Configure<IConfiguration>((opts, config) =>
@@ -75,16 +80,19 @@ namespace THNETII.Msal.SampleConsole
                 .Configure<IConfiguration>((opts, config) =>
                     config.Bind("AcquireToken", opts))
                 .BindCommandLine()
+                .Configure<ParseResult>(BindCommandLineScopes)
                 ;
             services.AddOptions<IntegratedWindowsAuthenticationAcquireTokenOptions>()
                 .Configure<IConfiguration>((opts, config) =>
                     config.Bind("AcquireToken", opts))
                 .BindCommandLine()
+                .Configure<ParseResult>(BindCommandLineScopes)
                 ;
             services.AddOptions<SilentAcquireTokenOptions>()
                 .Configure<IConfiguration>((opts, config) =>
                     config.Bind("AcquireToken", opts))
                 .BindCommandLine()
+                .Configure<ParseResult>(BindCommandLineScopes)
                 ;
 
             services.AddOptions<MsalTokenCacheStorageOptions>()
@@ -109,6 +117,19 @@ namespace THNETII.Msal.SampleConsole
                     .GetCustomAttribute<AssemblyInformationalVersionAttribute>()?
                     .InformationalVersion ??
                     entryName.Version?.ToString();
+            }
+        }
+
+        private static void BindCommandLineScopes(AcquireTokenOptions options,
+            ParseResult parseResult)
+        {
+            var scopesOptionResult = parseResult.CommandResult.Children
+                .OfType<OptionResult>()
+                .FirstOrDefault(r => r.Symbol.Name == nameof(options.Scopes));
+
+            if (scopesOptionResult?.GetValueOrDefault() is IEnumerable<string> scopes)
+            {
+                options.Scopes.AddRange(scopes);
             }
         }
     }
