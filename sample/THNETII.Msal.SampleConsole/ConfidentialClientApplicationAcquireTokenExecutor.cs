@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -12,10 +12,10 @@ namespace THNETII.Msal.SampleConsole
         private readonly ConfidentialClientApplicationAppConfigExecutor appConfigExecutor;
 
         protected ConfidentialClientApplicationAcquireTokenExecutor(
-            IServiceProvider serviceProvider)
-            : base(
-                  serviceProvider.GetRequiredService<MsalTokenCacheStorageProvider>(),
-                  serviceProvider.GetService<ILoggerFactory>())
+            IServiceProvider serviceProvider,
+            MsalTokenCacheStorageProvider cacheStorageProvider,
+            ILoggerFactory? loggerFactory = null)
+            : base(cacheStorageProvider, loggerFactory)
         {
             appConfigExecutor = ActivatorUtilities.GetServiceOrCreateInstance
                 <ConfidentialClientApplicationAppConfigExecutor>(serviceProvider);

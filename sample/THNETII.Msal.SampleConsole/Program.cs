@@ -1,5 +1,4 @@
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.CommandLine;
 using System.CommandLine.Builder;
@@ -13,7 +12,6 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
-using Microsoft.Graph;
 using Microsoft.Identity.Client;
 
 using THNETII.CommandLine.Hosting;
@@ -61,7 +59,6 @@ namespace THNETII.Msal.SampleConsole
         private static void ConfigureServices(IServiceCollection services)
         {
             services.AddHttpClient();
-            services.AddHttpClient<GraphServiceClient>();
 
             services.AddOptions<PublicClientApplicationOptions>()
                 .Configure<IConfiguration>((opts, config) =>

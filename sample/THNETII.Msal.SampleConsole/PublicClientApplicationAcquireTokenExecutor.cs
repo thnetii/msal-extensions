@@ -12,11 +12,10 @@ namespace THNETII.Msal.SampleConsole
         private readonly PublicClientApplicationAppConfigExecutor appConfigExecutor;
 
         protected PublicClientApplicationAcquireTokenExecutor(
-            IServiceProvider serviceProvider)
-            : base(
-                  serviceProvider.GetRequiredService<MsalTokenCacheStorageProvider>(),
-                  serviceProvider.GetService<ILoggerFactory>()
-                  )
+            IServiceProvider serviceProvider,
+            MsalTokenCacheStorageProvider cacheStorageProvider,
+            ILoggerFactory? loggerFactory = null)
+            : base(cacheStorageProvider, loggerFactory)
         {
             appConfigExecutor = ActivatorUtilities.GetServiceOrCreateInstance
                 <PublicClientApplicationAppConfigExecutor>(serviceProvider);

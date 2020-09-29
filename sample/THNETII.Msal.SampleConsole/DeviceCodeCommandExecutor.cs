@@ -1,6 +1,5 @@
 using System;
 using System.Linq;
-using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -20,8 +19,9 @@ namespace THNETII.Msal.SampleConsole
         public DeviceCodeCommandExecutor(
             IServiceProvider serviceProvider,
             IOptions<AcquireTokenOptions> acquireTokenOptions,
+            MsalTokenCacheStorageProvider cacheStorageProvider,
             ILoggerFactory? loggerFactory = null)
-            : base(serviceProvider)
+            : base(serviceProvider, cacheStorageProvider, loggerFactory)
         {
             this.acquireTokenOptions = acquireTokenOptions?.Value
                 ?? throw new ArgumentNullException(nameof(acquireTokenOptions));

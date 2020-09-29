@@ -3,6 +3,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.Identity.Client;
 
@@ -15,8 +16,10 @@ namespace THNETII.Msal.SampleConsole
 
         public IntegratedWindowsAuthenticationCommandExecutor(
             IServiceProvider serviceProvider,
-            IOptions<IntegratedWindowsAuthenticationAcquireTokenOptions> acquireTokenOptions)
-            : base(serviceProvider)
+            IOptions<IntegratedWindowsAuthenticationAcquireTokenOptions> acquireTokenOptions,
+            MsalTokenCacheStorageProvider cacheStorageProvider,
+            ILoggerFactory? loggerFactory = null)
+            : base(serviceProvider, cacheStorageProvider, loggerFactory)
         {
             this.acquireTokenOptions = acquireTokenOptions?.Value
                 ?? throw new ArgumentNullException(nameof(acquireTokenOptions));
