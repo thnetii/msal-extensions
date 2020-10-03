@@ -23,11 +23,11 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "sample", "sample", "{1E90DF
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "THNETII.Msal.SampleConsole", "sample\THNETII.Msal.SampleConsole\THNETII.Msal.SampleConsole.csproj", "{08892EDD-F56C-425E-A1D4-0546808B4E83}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "command-line-extensions", "command-line-extensions", "{A141DB58-2091-4F3E-A6F2-AC1C7BFBCB7A}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "dotnet-command-line", "dotnet-command-line", "{A141DB58-2091-4F3E-A6F2-AC1C7BFBCB7A}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{3060D24E-45B6-4966-AD44-9EB955D40373}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "THNETII.CommandLine.Hosting", "command-line-extensions\src\THNETII.CommandLine.Hosting\THNETII.CommandLine.Hosting.csproj", "{E92737A9-F232-4B16-8524-9838AEA8D704}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "THNETII.CommandLine.Hosting", "dotnet-command-line\src\THNETII.CommandLine.Hosting\THNETII.CommandLine.Hosting.csproj", "{E92737A9-F232-4B16-8524-9838AEA8D704}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "dotnet-logging", "dotnet-logging", "{05EBF9E2-AF58-4724-92FD-47C82F55B91F}"
 EndProject
