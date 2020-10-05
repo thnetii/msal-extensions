@@ -18,27 +18,13 @@ using THNETII.CommandLine.Hosting;
 
 namespace THNETII.Msal.SampleConsole
 {
-    public static class Program
+    public static partial class Program
     {
         public static async Task<int> Main(string[] args)
         {
-            var definition = new RootCommandDefinition();
-
-            var pcaDefinition = new PublicClientDefinition();
-            definition.AddSubCommandDefinition(pcaDefinition);
-            pcaDefinition.AddSubCommandDefinition(new DeviceCodeCommandDefinition());
-            pcaDefinition.AddSubCommandDefinition(new IntegratedWindowsAuthenticationCommandDefinition());
-            pcaDefinition.AddSubCommandDefinition(new AccountCommandDefinition<PublicClientAccountsExecutor>());
-            pcaDefinition.AddSubCommandDefinition(new SilentCommandDefinition<PublicClientSilentCommandExecutor>());
-
-            var ccaDefinition = new ConfidentialClientDefinition();
-            definition.AddSubCommandDefinition(ccaDefinition);
-            ccaDefinition.AddSubCommandDefinition(new AccountCommandDefinition<ConfidentialClientAccountsExecutor>());
-            ccaDefinition.AddSubCommandDefinition(new SilentCommandDefinition<ConfidentialClientSilentCommandExecutor>());
-
-            var cmdParser = new CommandLineBuilder(definition.Command)
+            var cmdParser = new CommandLineBuilder(CreateRootCommand())
                 .UseDefaults()
-                .UseHostingDefinition(definition, CreateHostBuilder)
+                .UseHost(CreateHostBuilder)
                 .Build();
             return await cmdParser.InvokeAsync(args ?? Array.Empty<string>())
                 .ConfigureAwait(continueOnCapturedContext: false);
@@ -59,6 +45,7 @@ namespace THNETII.Msal.SampleConsole
         private static void ConfigureServices(IServiceCollection services)
         {
             services.AddHttpClient();
+            services.AddSingleton<ClientApplicationFactory>();
 
             services.AddOptions<PublicClientApplicationOptions>()
                 .Configure<IConfiguration>((opts, config) =>
@@ -93,13 +80,7 @@ namespace THNETII.Msal.SampleConsole
                 ;
 
             services.AddOptions<MsalTokenCacheStorageOptions>()
-                .Configure(opts => opts.ApplicationAssembly = typeof(Program).Assembly)
-                .Configure<IOptions<PublicClientApplicationOptions>>(
-                    (opts, pca) => opts.ClientId = pca.Value.ClientId)
-                .Configure<IOptions<ConfidentialClientApplicationOptions>>(
-                    (opts, cca) => opts.ClientId = cca.Value.ClientId)
                 ;
-            services.AddScoped<MsalTokenCacheStorageProvider>();
         }
 
         private static void PostConfigureAbstractApplicationOptions(

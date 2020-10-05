@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -9,30 +9,32 @@ using Microsoft.Identity.Client;
 
 namespace THNETII.Msal.SampleConsole
 {
-    public abstract class ClientApplicationBaseSilentCommandExecutor
+    public class ClientApplicationBaseSilentCommandExecutor
         : ClientApplicationBaseAcquireTokenExecutor
     {
         private readonly SilentAcquireTokenOptions silentOptions;
 
         protected ClientApplicationBaseSilentCommandExecutor(
+            ClientApplicationFactory clientApplicationFactory,
             IOptions<SilentAcquireTokenOptions> acquireTokenOptions,
-            MsalTokenCacheStorageProvider cacheStorageProvider,
             ILoggerFactory? loggerFactory = null)
-            : base(cacheStorageProvider, loggerFactory)
+            : base(clientApplicationFactory, loggerFactory)
         {
             silentOptions = acquireTokenOptions?.Value
                 ?? throw new ArgumentNullException(nameof(acquireTokenOptions));
         }
 
-        protected override async Task<AuthenticationResult> ExecuteAcquireToken(
+        protected override sealed async Task<AuthenticationResult> ExecuteAcquireToken(
             CancellationToken cancelToken = default)
         {
-            var account = await BaseApplication
+            var application = await CreateClientApplication()
+                .ConfigureAwait(continueOnCapturedContext: false);
+            var account = await application
                 .GetAccountAsync(silentOptions.AccountIdentifier)
                 .ConfigureAwait(continueOnCapturedContext: false);
 
             var scopes = silentOptions.Scopes ?? Enumerable.Empty<string>();
-            var auth = BaseApplication.AcquireTokenSilent(scopes, account);
+            var auth = application.AcquireTokenSilent(scopes, account);
             if (silentOptions.ForceRefresh.HasValue)
             {
                 bool forceRefresh = silentOptions.ForceRefresh.Value;

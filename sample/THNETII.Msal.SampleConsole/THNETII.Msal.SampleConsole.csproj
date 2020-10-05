@@ -21,6 +21,9 @@
     <EmbeddedResource Update="appsettings.*.json">
       <DependentUpon>appsettings.json</DependentUpon>
     </EmbeddedResource>
+    <Compile Update="Program.*.cs">
+      <DependentUpon>Program.cs</DependentUpon>
+    </Compile>
   </ItemGroup>
 
 </Project>

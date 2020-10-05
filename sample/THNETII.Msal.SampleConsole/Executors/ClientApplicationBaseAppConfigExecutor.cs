@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Text;
@@ -10,18 +10,21 @@ using Microsoft.Identity.Client;
 
 namespace THNETII.Msal.SampleConsole
 {
-    public abstract class ClientApplicationBaseAppConfigExecutor
+    public class ClientApplicationBaseAppConfigExecutor
         : ClientApplicationBaseExecutor
     {
-        protected ClientApplicationBaseAppConfigExecutor(
-            MsalTokenCacheStorageProvider cacheStorageProvider,
+        public ClientApplicationBaseAppConfigExecutor(
+            ClientApplicationFactory clientApplicationFactory,
             ILoggerFactory? loggerFactory = null)
-            : base(cacheStorageProvider, loggerFactory) { }
+            : base(clientApplicationFactory, loggerFactory) { }
 
-        protected override Task<int> ExecuteAsync(CancellationToken cancelToken)
+        public override sealed async Task<int> RunAsync(CancellationToken cancelToken = default)
         {
-            LogAppConfig(BaseApplication.AppConfig);
-            return Task.FromResult(0);
+            var app = await CreateClientApplication()
+                .ConfigureAwait(continueOnCapturedContext: false);
+            LogAppConfig(app.AppConfig);
+
+            return 0;
         }
 
         private void LogAppConfig(IAppConfig appConfig)

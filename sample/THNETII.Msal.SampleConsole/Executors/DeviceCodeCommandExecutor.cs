@@ -17,11 +17,10 @@ namespace THNETII.Msal.SampleConsole
         private readonly AcquireTokenOptions acquireTokenOptions;
 
         public DeviceCodeCommandExecutor(
-            IServiceProvider serviceProvider,
+            ClientApplicationFactory clientApplicationFactory,
             IOptions<AcquireTokenOptions> acquireTokenOptions,
-            MsalTokenCacheStorageProvider cacheStorageProvider,
             ILoggerFactory? loggerFactory = null)
-            : base(serviceProvider, cacheStorageProvider, loggerFactory)
+            : base(clientApplicationFactory, loggerFactory)
         {
             this.acquireTokenOptions = acquireTokenOptions?.Value
                 ?? throw new ArgumentNullException(nameof(acquireTokenOptions));
@@ -35,13 +34,16 @@ namespace THNETII.Msal.SampleConsole
             deviceCodeResultCallback = DeviceCodeUserInteractionCallback;
         }
 
-        protected override Task<AuthenticationResult> ExecuteAcquireToken(
+        protected override async Task<AuthenticationResult> ExecuteAcquireToken(
             CancellationToken cancelToken = default)
         {
             var scopes = acquireTokenOptions?.Scopes ?? Enumerable.Empty<string>();
-            var auth = Application
+            var application = await CreatePublicClientApplication()
+                .ConfigureAwait(continueOnCapturedContext: false);
+            var auth = application
                 .AcquireTokenWithDeviceCode(scopes, deviceCodeResultCallback);
-            return auth.ExecuteAsync(cancelToken);
+            return await auth.ExecuteAsync(cancelToken)
+                .ConfigureAwait(continueOnCapturedContext: false);
         }
 
         private Task DeviceCodeUserInteractionCallback(DeviceCodeResult dcr)

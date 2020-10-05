@@ -8,19 +8,19 @@ using Microsoft.Identity.Client;
 
 namespace THNETII.Msal.SampleConsole
 {
-    public abstract class ClientApplicationBaseAccountsExecutor
+    public class ClientApplicationBaseAccountsExecutor
         : ClientApplicationBaseExecutor
     {
         protected ClientApplicationBaseAccountsExecutor(
-            MsalTokenCacheStorageProvider cacheStorageProvider,
+            ClientApplicationFactory clientApplicationFactory,
             ILoggerFactory? loggerFactory = null)
-            : base(cacheStorageProvider, loggerFactory)
-        {
-        }
+            : base(clientApplicationFactory, loggerFactory) { }
 
-        protected override async Task<int> ExecuteAsync(CancellationToken cancelToken)
+        public override sealed async Task<int> RunAsync(CancellationToken cancelToken = default)
         {
-            var accounts = await BaseApplication.GetAccountsAsync()
+            var application = await CreateClientApplication()
+                .ConfigureAwait(continueOnCapturedContext: false);
+            var accounts = await application.GetAccountsAsync()
                 .ConfigureAwait(continueOnCapturedContext: false);
             foreach (var account in accounts)
             {
@@ -28,6 +28,11 @@ namespace THNETII.Msal.SampleConsole
             }
 
             return 0;
+        }
+
+        protected override Task<IClientApplicationBase> CreateClientApplication()
+        {
+            return ClientApplicationFactory.CreateClientApplication();
         }
 
         private void LogAccount(IAccount account)

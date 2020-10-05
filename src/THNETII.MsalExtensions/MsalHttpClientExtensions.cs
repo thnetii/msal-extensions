@@ -3,7 +3,7 @@ using System.Net.Http;
 
 namespace Microsoft.Identity.Client
 {
-    public static class MsalHttpClientFactoryExtensions
+    public static class MsalHttpClientExtensions
     {
         public static T WithHttpClient<T>(
             this AbstractApplicationBuilder<T> appBuilder,

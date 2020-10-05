@@ -15,26 +15,28 @@ namespace THNETII.Msal.SampleConsole
         private readonly IntegratedWindowsAuthenticationAcquireTokenOptions acquireTokenOptions;
 
         public IntegratedWindowsAuthenticationCommandExecutor(
-            IServiceProvider serviceProvider,
+            ClientApplicationFactory clientApplicationFactory,
             IOptions<IntegratedWindowsAuthenticationAcquireTokenOptions> acquireTokenOptions,
-            MsalTokenCacheStorageProvider cacheStorageProvider,
             ILoggerFactory? loggerFactory = null)
-            : base(serviceProvider, cacheStorageProvider, loggerFactory)
+            : base(clientApplicationFactory, loggerFactory)
         {
             this.acquireTokenOptions = acquireTokenOptions?.Value
                 ?? throw new ArgumentNullException(nameof(acquireTokenOptions));
         }
 
-        protected override Task<AuthenticationResult> ExecuteAcquireToken(
+        protected override async Task<AuthenticationResult> ExecuteAcquireToken(
             CancellationToken cancelToken = default)
         {
             var scopes = acquireTokenOptions?.Scopes ?? Enumerable.Empty<string>();
-            var auth = Application
+            var application = await CreatePublicClientApplication()
+                .ConfigureAwait(continueOnCapturedContext: false);
+            var auth = application
                 .AcquireTokenByIntegratedWindowsAuth(scopes);
             if (acquireTokenOptions?.Username is string username &&
                 !string.IsNullOrEmpty(username))
                 auth.WithUsername(username);
-            return auth.ExecuteAsync(cancelToken);
+            return await auth.ExecuteAsync(cancelToken)
+                .ConfigureAwait(continueOnCapturedContext: false);
         }
     }
 }

@@ -14,11 +14,11 @@ namespace THNETII.Msal.SampleConsole
         : ClientApplicationBaseExecutor
     {
         protected ClientApplicationBaseAcquireTokenExecutor(
-            MsalTokenCacheStorageProvider cacheStorageProvider,
+            ClientApplicationFactory clientApplicationFactory,
             ILoggerFactory? loggerFactory = null)
-            : base(cacheStorageProvider, loggerFactory) { }
+            : base(clientApplicationFactory, loggerFactory) { }
 
-        protected override async Task<int> ExecuteAsync(
+        public override sealed async Task<int> RunAsync(
             CancellationToken cancelToken = default)
         {
             AuthenticationResult authResult;
