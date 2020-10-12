@@ -22,6 +22,15 @@
       "type": "coreclr",
       "request": "attach",
       "processId": "${command:pickProcess}"
+    },
+    {
+      "name": "PowerShell MSAL PublicClient",
+      "type": "PowerShell",
+      "request": "launch",
+      "script": "${workspaceFolder}/scripts/msal-public.ps1",
+      "cwd": "${workspaceFolder}",
+      "createTemporaryIntegratedConsole": true,
+      "preLaunchTask": "publish PowerShell Core"
     }
   ]
 }
