@@ -8,7 +8,7 @@
   </PropertyGroup>
 
   <ItemGroup Label="MSAL.NET">
-    <ProjectReference Include="..\..\src\THNETII.MsalExtensions\THNETII.MsalExtensions.csproj" />
+    <ProjectReference Include="..\..\src\THNETII.Msal.Extensions\THNETII.Msal.Extensions.csproj" />
   </ItemGroup>
 
   <ItemGroup Label=".NET Generic Host">
