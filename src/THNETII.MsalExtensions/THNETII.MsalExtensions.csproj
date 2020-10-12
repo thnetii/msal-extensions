@@ -19,7 +19,7 @@
   </ItemGroup>
 
   <ItemGroup Label="Diagnostics">
-    <ProjectReference Include="..\..\dotnet-logging\src\THNETII.Logging.DiagnosticsForwarding\THNETII.Logging.DiagnosticsForwarding.csproj" />
+    <ProjectReference Include="..\..\submodules\thnetii\dotnet-logging\src\THNETII.Logging.DiagnosticsForwarding\THNETII.Logging.DiagnosticsForwarding.csproj" />
   </ItemGroup>
 
 </Project>
