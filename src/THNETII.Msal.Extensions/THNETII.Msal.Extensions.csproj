@@ -10,7 +10,7 @@
   </PropertyGroup>
 
   <ItemGroup Label="MSAL.NET">
-    <PackageReference Include="Microsoft.Identity.Client.Extensions.Msal" Version="2.15.0" />
+    <PackageReference Include="Microsoft.Identity.Client.Extensions.Msal" Version="2.16.1" />
   </ItemGroup>
 
   <ItemGroup Label=".NET Generic Host">
