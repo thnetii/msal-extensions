@@ -10,12 +10,12 @@
   </PropertyGroup>
 
   <ItemGroup Label="MSAL.NET">
-    <PackageReference Include="Microsoft.Identity.Client.Extensions.Msal" Version="2.15.0" />
+    <PackageReference Include="Microsoft.Identity.Client.Extensions.Msal" Version="2.16.1" />
   </ItemGroup>
 
   <ItemGroup Label=".NET Generic Host">
-    <PackageReference Include="Microsoft.Extensions.Configuration.UserSecrets" Version="3.1.8" />
-    <PackageReference Include="Microsoft.Extensions.Http" Version="3.1.8" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.UserSecrets" Version="3.1.9" />
+    <PackageReference Include="Microsoft.Extensions.Http" Version="3.1.9" />
   </ItemGroup>
 
   <ItemGroup Label="Diagnostics">

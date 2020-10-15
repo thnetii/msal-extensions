@@ -5,9 +5,6 @@ Add-Type -LiteralPath (Join-Path $PSScriptRoot "THNETII.Msal.PowerShell.dll")
 $Script:MsalHttpClient = New-Object "Microsoft.Identity.Client.MsalHttpClient" `
     -ArgumentList @((New-Object "System.Net.Http.HttpClient"))
 
-[runspace]$Script:MsalLogRunspace = [runspacefactory]::CreateRunspace()
-[scriptblock]::Create("").
-
 $Script:MsalClientName = "PowerShell $($PSVersionTable["PSEdition"])"
 $Script:MsalClientVersion = $PSVersionTable["PSVersion"]
 
