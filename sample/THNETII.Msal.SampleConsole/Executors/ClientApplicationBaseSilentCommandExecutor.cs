@@ -27,8 +27,7 @@ namespace THNETII.Msal.SampleConsole
         protected override sealed async Task<AuthenticationResult> ExecuteAcquireToken(
             CancellationToken cancelToken = default)
         {
-            var application = await CreateClientApplication()
-                .ConfigureAwait(continueOnCapturedContext: false);
+            var application = CreateClientApplication();
             var account = await application
                 .GetAccountAsync(silentOptions.AccountIdentifier)
                 .ConfigureAwait(continueOnCapturedContext: false);

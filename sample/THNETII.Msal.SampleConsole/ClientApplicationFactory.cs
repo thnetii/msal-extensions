@@ -1,7 +1,6 @@
 using System;
 using System.CommandLine.Parsing;
 using System.Net.Http;
-using System.Threading.Tasks;
 
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -20,7 +19,7 @@ namespace THNETII.Msal.SampleConsole
                 ?? throw new ArgumentNullException(nameof(serviceProvider));
         }
 
-        private void ConfigureBuilder<T>(AbstractApplicationBuilder<T> builder)
+        protected virtual void ConfigureBuilder<T>(AbstractApplicationBuilder<T> builder)
             where T : AbstractApplicationBuilder<T>
         {
             var httpClientFactory = serviceProvider.GetService<IHttpClientFactory>();
@@ -32,7 +31,7 @@ namespace THNETII.Msal.SampleConsole
                 builder.WithLoggerFactory(loggerFactory);
         }
 
-        public Task<IPublicClientApplication> CreatePublicClientApplication()
+        public IPublicClientApplication CreatePublicClientApplication()
         {
             var options = serviceProvider
                 .GetRequiredService<IOptions<PublicClientApplicationOptions>>()
@@ -40,11 +39,15 @@ namespace THNETII.Msal.SampleConsole
             var builder = PublicClientApplicationBuilder
                 .CreateWithApplicationOptions(options);
             ConfigureBuilder(builder);
-            return builder.BuildWithTokenCacheStorageAsync(
-                serviceProvider, ConfigureUserTokenCacheStorage);
+            var app = builder.Build();
+            if (serviceProvider.GetService<MsalTokenCacheProvider>() is { } cacheStorageProvider)
+            {
+                cacheStorageProvider.RegisterCache(app.UserTokenCache);
+            }
+            return app;
         }
 
-        public Task<IConfidentialClientApplication> CreateConfidentialClientApplication()
+        public IConfidentialClientApplication CreateConfidentialClientApplication()
         {
             var options = serviceProvider
                 .GetRequiredService<IOptions<ConfidentialClientApplicationOptions>>()
@@ -52,16 +55,16 @@ namespace THNETII.Msal.SampleConsole
             var builder = ConfidentialClientApplicationBuilder
                 .CreateWithApplicationOptions(options);
             ConfigureBuilder(builder);
-            return builder.BuildWithTokenCacheStorageAsync(
-                serviceProvider, ConfigureUserTokenCacheStorage);
+            var app = builder.Build();
+            if (serviceProvider.GetService<MsalTokenCacheProvider>() is { } cacheStorageProvider)
+            {
+                cacheStorageProvider.RegisterCache(app.UserTokenCache);
+                cacheStorageProvider.RegisterCache(app.AppTokenCache);
+            }
+            return app;
         }
 
-        private void ConfigureUserTokenCacheStorage(MsalTokenCacheStorageBuilder builder)
-        {
-            builder.WithApplicationAssembly(typeof(Program).Assembly);
-        }
-
-        public async Task<IClientApplicationBase> CreateClientApplication()
+        public IClientApplicationBase CreateClientApplication()
         {
             var argsParseResult = serviceProvider.GetRequiredService<ParseResult>();
             for (
@@ -73,16 +76,37 @@ namespace THNETII.Msal.SampleConsole
                 {
                     case string pcaName
                     when pcaName.Equals("public", StringComparison.OrdinalIgnoreCase):
-                        return await CreatePublicClientApplication()
-                            .ConfigureAwait(continueOnCapturedContext: false);
+                        return CreatePublicClientApplication();
                     case string pcaName
                     when pcaName.Equals("confidentials", StringComparison.OrdinalIgnoreCase):
-                        return await CreateConfidentialClientApplication()
-                            .ConfigureAwait(continueOnCapturedContext: false);
+                        return CreateConfidentialClientApplication();
                 }
             }
 
             throw new InvalidOperationException("Unable to determine whether to construct public or confidential client application");
         }
     }
+
+    //public class NamedClientApplicationFactory : ClientApplicationFactory
+    //{
+    //    private readonly IServiceProvider serviceProvider;
+
+    //    public NamedClientApplicationFactory(IServiceProvider serviceProvider,
+    //        string? name = default) : base(serviceProvider)
+    //    {
+    //        this.serviceProvider = serviceProvider;
+    //        Name = name;
+    //    }
+
+    //    public string? Name { get; set; }
+
+    //    protected override void ConfigureBuilder<T>(AbstractApplicationBuilder<T> builder)
+    //    {
+    //        base.ConfigureBuilder(builder);
+    //        var httpClientFactory = serviceProvider.GetService<IHttpClientFactory>();
+
+    //        if (!(httpClientFactory is null))
+    //            builder.WithHttpClientFactory(httpClientFactory, Name);
+    //    }
+    //}
 }

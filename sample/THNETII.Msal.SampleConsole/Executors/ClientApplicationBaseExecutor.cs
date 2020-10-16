@@ -27,7 +27,7 @@ namespace THNETII.Msal.SampleConsole
 
         public abstract Task<int> RunAsync(CancellationToken cancelToken = default);
 
-        protected virtual Task<IClientApplicationBase> CreateClientApplication() =>
+        protected virtual IClientApplicationBase CreateClientApplication() =>
             ClientApplicationFactory.CreateClientApplication();
     }
 }

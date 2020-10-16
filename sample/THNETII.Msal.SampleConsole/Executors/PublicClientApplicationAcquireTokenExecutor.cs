@@ -1,5 +1,3 @@
-using System.Threading.Tasks;
-
 using Microsoft.Extensions.Logging;
 using Microsoft.Identity.Client;
 
@@ -13,13 +11,10 @@ namespace THNETII.Msal.SampleConsole
             ILoggerFactory? loggerFactory = null)
             : base(clientApplicationFactory, loggerFactory) { }
 
-        protected override sealed async Task<IClientApplicationBase> CreateClientApplication()
-        {
-            return await CreatePublicClientApplication()
-                .ConfigureAwait(continueOnCapturedContext: false);
-        }
+        protected override sealed IClientApplicationBase CreateClientApplication() =>
+            CreatePublicClientApplication();
 
-        protected Task<IPublicClientApplication> CreatePublicClientApplication() =>
+        protected virtual IPublicClientApplication CreatePublicClientApplication() =>
             ClientApplicationFactory.CreatePublicClientApplication();
     }
 }

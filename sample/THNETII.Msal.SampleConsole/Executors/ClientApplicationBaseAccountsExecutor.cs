@@ -18,8 +18,7 @@ namespace THNETII.Msal.SampleConsole
 
         public override sealed async Task<int> RunAsync(CancellationToken cancelToken = default)
         {
-            var application = await CreateClientApplication()
-                .ConfigureAwait(continueOnCapturedContext: false);
+            var application = CreateClientApplication();
             var accounts = await application.GetAccountsAsync()
                 .ConfigureAwait(continueOnCapturedContext: false);
             foreach (var account in accounts)
@@ -30,7 +29,7 @@ namespace THNETII.Msal.SampleConsole
             return 0;
         }
 
-        protected override Task<IClientApplicationBase> CreateClientApplication()
+        protected override IClientApplicationBase CreateClientApplication()
         {
             return ClientApplicationFactory.CreateClientApplication();
         }
