@@ -5,9 +5,11 @@ using System.CommandLine.Builder;
 using System.CommandLine.Hosting;
 using System.CommandLine.Parsing;
 using System.Linq;
+using System.Net.Http;
 using System.Reflection;
 using System.Threading.Tasks;
 
+using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -44,8 +46,20 @@ namespace THNETII.Msal.SampleConsole
 
         private static void ConfigureServices(IServiceCollection services)
         {
-            services.AddHttpClient();
+            services.AddHttpClient(Options.DefaultName)
+            //    ;
+            //services.AddHttpClient("integratedWindowsAuth")
+                .ConfigurePrimaryHttpMessageHandler(serviceProvider =>
+                {
+                    var handler = new HttpClientHandler
+                    {
+                        UseDefaultCredentials = true,
+                    };
+                    return handler;
+                })
+                ;
             services.AddSingleton<ClientApplicationFactory>();
+            //services.AddTransient<NamedClientApplicationFactory>();
 
             services.AddOptions<PublicClientApplicationOptions>()
                 .Configure<IConfiguration>((opts, config) =>
@@ -79,8 +93,14 @@ namespace THNETII.Msal.SampleConsole
                 .Configure<ParseResult>(BindCommandLineScopes)
                 ;
 
-            services.AddOptions<MsalTokenCacheStorageOptions>()
-                ;
+            services.AddDataProtection();
+            services.AddSingleton(serviceProvider =>
+            {
+                var memCache = ActivatorUtilities.GetServiceOrCreateInstance
+                    <MemoryDistributedCache>(serviceProvider);
+                return ActivatorUtilities.CreateInstance
+                    <MsalTokenCacheProvider>(serviceProvider, memCache);
+            });
         }
 
         private static void PostConfigureAbstractApplicationOptions(

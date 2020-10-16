@@ -16,10 +16,13 @@ namespace THNETII.Msal.SampleConsole
 
         public IntegratedWindowsAuthenticationCommandExecutor(
             ClientApplicationFactory clientApplicationFactory,
+            //NamedClientApplicationFactory clientApplicationFactory,
             IOptions<IntegratedWindowsAuthenticationAcquireTokenOptions> acquireTokenOptions,
             ILoggerFactory? loggerFactory = null)
             : base(clientApplicationFactory, loggerFactory)
         {
+            //_ = clientApplicationFactory ?? throw new ArgumentNullException(nameof(clientApplicationFactory));
+            //clientApplicationFactory.Name = "integratedWindowsAuth";
             this.acquireTokenOptions = acquireTokenOptions?.Value
                 ?? throw new ArgumentNullException(nameof(acquireTokenOptions));
         }
@@ -28,8 +31,7 @@ namespace THNETII.Msal.SampleConsole
             CancellationToken cancelToken = default)
         {
             var scopes = acquireTokenOptions?.Scopes ?? Enumerable.Empty<string>();
-            var application = await CreatePublicClientApplication()
-                .ConfigureAwait(continueOnCapturedContext: false);
+            var application = CreatePublicClientApplication();
             var auth = application
                 .AcquireTokenByIntegratedWindowsAuth(scopes);
             if (acquireTokenOptions?.Username is string username &&

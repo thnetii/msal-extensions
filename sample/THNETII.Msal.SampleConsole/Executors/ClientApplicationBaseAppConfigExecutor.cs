@@ -18,13 +18,12 @@ namespace THNETII.Msal.SampleConsole
             ILoggerFactory? loggerFactory = null)
             : base(clientApplicationFactory, loggerFactory) { }
 
-        public override sealed async Task<int> RunAsync(CancellationToken cancelToken = default)
+        public override sealed Task<int> RunAsync(CancellationToken cancelToken = default)
         {
-            var app = await CreateClientApplication()
-                .ConfigureAwait(continueOnCapturedContext: false);
+            var app = CreateClientApplication();
             LogAppConfig(app.AppConfig);
 
-            return 0;
+            return Task.FromResult(0);
         }
 
         private void LogAppConfig(IAppConfig appConfig)

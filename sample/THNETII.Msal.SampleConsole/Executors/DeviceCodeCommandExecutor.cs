@@ -38,8 +38,7 @@ namespace THNETII.Msal.SampleConsole
             CancellationToken cancelToken = default)
         {
             var scopes = acquireTokenOptions?.Scopes ?? Enumerable.Empty<string>();
-            var application = await CreatePublicClientApplication()
-                .ConfigureAwait(continueOnCapturedContext: false);
+            var application = CreatePublicClientApplication();
             var auth = application
                 .AcquireTokenWithDeviceCode(scopes, deviceCodeResultCallback);
             return await auth.ExecuteAsync(cancelToken)

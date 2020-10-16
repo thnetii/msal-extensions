@@ -57,6 +57,7 @@ namespace THNETII.Msal.SampleConsole
                 messageArgs.Add(value);
             }
 
+            MessageAdd(nameof(authResult.AccessToken), authResult.AccessToken);
             MessageAdd(nameof(authResult.IsExtendedLifeTimeToken), authResult.IsExtendedLifeTimeToken);
             MessageAdd(nameof(authResult.UniqueId), authResult.UniqueId);
             MessageAdd(nameof(authResult.ExpiresOn), authResult.ExpiresOn);
@@ -81,6 +82,7 @@ namespace THNETII.Msal.SampleConsole
                     messageArgs.Add(accountId.TenantId);
                 }
             }
+            MessageAdd(nameof(authResult.IdToken), authResult.IdToken);
             MessageAdd(nameof(authResult.Scopes), string.Join(", ", authResult.Scopes ?? Enumerable.Empty<string>()));
             MessageAdd(nameof(authResult.CorrelationId), authResult.CorrelationId);
             MessageAdd(nameof(authResult.AuthenticationResultMetadata), authResult.AuthenticationResultMetadata);

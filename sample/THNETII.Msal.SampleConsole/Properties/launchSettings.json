@@ -1,8 +1,12 @@
 {
   "profiles": {
-    "THNETII.Msal.SampleConsole": {
+    "SampleConsole: public IWA": {
       "commandName": "Project",
-      "commandLineArgs": "[config:Environment=Development]"
+      "commandLineArgs": "[config:Environment=Development] public iwa"
+    },
+    "SampleConsole: public DeviceCode": {
+      "commandName": "Project",
+      "commandLineArgs": "[config:Environment=Development] public devicecode"
     }
   }
 }
