@@ -3,44 +3,48 @@ using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 
 using Microsoft.AspNetCore.DataProtection;
-using Microsoft.Extensions.Caching.Distributed;
 
 namespace Microsoft.Identity.Client
 {
-    public class MsalTokenCacheProvider
+    public abstract class MsalTokenCacheProvider
     {
-        private readonly IDataProtector dataProtector;
-        private readonly IDistributedCache distributedCache;
+        private readonly IDataProtector? dataProtector;
 
         private readonly Func<TokenCacheNotificationArgs, Task> onBeforeAccess;
         private readonly Func<TokenCacheNotificationArgs, Task> onAfterAccess;
 
-        public MsalTokenCacheProvider(
-            IDataProtectionProvider dpProvider,
-            IDistributedCache distributedCache)
+        public MsalTokenCacheProvider(IDataProtectionProvider? dpProvider)
         {
-            _ = dpProvider ?? throw new ArgumentNullException(nameof(dpProvider));
-            this.distributedCache = distributedCache ?? throw new ArgumentNullException(nameof(distributedCache));
-
-            string protectPurpose = typeof(ITokenCacheSerializer).FullName +
-                "." + nameof(ITokenCacheSerializer.SerializeMsalV3);
-            dataProtector = dpProvider.CreateProtector(protectPurpose);
+            if (dpProvider != null)
+            {
+                string protectPurpose = typeof(ITokenCacheSerializer).FullName +
+                        "." + nameof(ITokenCacheSerializer.SerializeMsalV3);
+                dataProtector = dpProvider.CreateProtector(protectPurpose);
+            }
 
             onBeforeAccess = OnBeforeAccess;
             onAfterAccess = OnAfterAccess;
         }
 
+        protected abstract Task<byte[]> GetMsalCacheData(TokenCacheNotificationArgs context);
+
+        protected abstract Task StoreMsalCacheData(
+            TokenCacheNotificationArgs context,
+            byte[] msalTokenCacheData);
+
         private async Task OnBeforeAccess(TokenCacheNotificationArgs context)
         {
-            var cacheKey = GetCacheKey(context);
-            var cacheProtected = await distributedCache.GetAsync(cacheKey)
+            var cacheProtected = await GetMsalCacheData(context)
                 .ConfigureAwait(continueOnCapturedContext: false);
-            if (cacheProtected is null)
+            if (cacheProtected is not { Length: > 0 })
                 return;
+
             // Pinning array for best-effort clearing of unprotected secrets
             // in memory
             var cacheHandle = GCHandle.Alloc(
-                dataProtector.Unprotect(cacheProtected),
+                dataProtector is null
+                ? cacheProtected
+                : dataProtector.Unprotect(cacheProtected),
                 GCHandleType.Pinned);
             try
             {
@@ -54,7 +58,7 @@ namespace Microsoft.Identity.Client
             }
         }
 
-        private Task OnAfterAccess(TokenCacheNotificationArgs context)
+        private async Task OnAfterAccess(TokenCacheNotificationArgs context)
         {
             if (context.HasStateChanged)
             {
@@ -63,36 +67,43 @@ namespace Microsoft.Identity.Client
                 var cacheHandle = GCHandle.Alloc(
                     context.TokenCache.SerializeMsalV3(),
                     GCHandleType.Pinned);
-                byte[] cacheProtected;
-                try
+                if (dataProtector is not null)
+                {
+                    byte[] cacheProtected;
+                    try
+                    {
+                        var cacheRaw = (byte[])cacheHandle.Target!;
+                        cacheProtected = dataProtector.Protect(cacheRaw);
+                        Array.Clear(cacheRaw, 0, cacheRaw.Length);
+                    }
+                    finally
+                    {
+                        cacheHandle.Free();
+                    }
+
+                    await StoreMsalCacheData(context, cacheProtected)
+                        .ConfigureAwait(continueOnCapturedContext: false);
+                }
+                else
                 {
                     var cacheRaw = (byte[])cacheHandle.Target!;
-                    cacheProtected = dataProtector.Protect(cacheRaw);
-                    Array.Clear(cacheRaw, 0, cacheRaw.Length);
+                    try
+                    {
+                        await StoreMsalCacheData(context, cacheRaw)
+                            .ConfigureAwait(continueOnCapturedContext: false);
+                    }
+                    finally
+                    {
+                        Array.Clear(cacheRaw, 0, cacheRaw.Length);
+                        cacheHandle.Free();
+                    }
                 }
-                finally
-                {
-                    cacheHandle.Free();
-                }
-                var cacheKey = GetCacheKey(context);
-                return distributedCache.SetAsync(cacheKey, cacheProtected);
             }
             else
-                return Task.CompletedTask;
+                return;
         }
 
-        private static string GetCacheKey(TokenCacheNotificationArgs context)
-        {
-            return (context.SuggestedCacheKey, context.Account, context.IsApplicationCache, context.ClientId) switch
-            {
-                (string key, _, _, _) => key,
-                (_, { HomeAccountId: { Identifier: string id } }, _, _) => id,
-                (_, _, true, string clientId) => clientId + "_" + nameof(IConfidentialClientApplication.AppTokenCache),
-                _ => string.Empty,
-            };
-        }
-
-        public void RegisterCache(ITokenCache cache)
+        public virtual void RegisterCache(ITokenCache cache)
         {
             _ = cache ?? throw new ArgumentNullException(nameof(cache));
             cache.SetBeforeAccessAsync(onBeforeAccess);

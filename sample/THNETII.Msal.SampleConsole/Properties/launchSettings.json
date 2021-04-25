@@ -6,7 +6,7 @@
     },
     "SampleConsole: public DeviceCode": {
       "commandName": "Project",
-      "commandLineArgs": "[config:Environment=Development] public devicecode"
+      "commandLineArgs": "[config:Environment=Development] public dca"
     }
   }
 }

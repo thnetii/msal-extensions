@@ -40,7 +40,8 @@ namespace THNETII.Msal.SampleConsole
                 .CreateWithApplicationOptions(options);
             ConfigureBuilder(builder);
             var app = builder.Build();
-            if (serviceProvider.GetService<MsalTokenCacheProvider>() is { } cacheStorageProvider)
+            var cacheStorageProvider = serviceProvider.GetService<MsalTokenCacheProvider>();
+            if (cacheStorageProvider is not null)
             {
                 cacheStorageProvider.RegisterCache(app.UserTokenCache);
             }
@@ -56,7 +57,8 @@ namespace THNETII.Msal.SampleConsole
                 .CreateWithApplicationOptions(options);
             ConfigureBuilder(builder);
             var app = builder.Build();
-            if (serviceProvider.GetService<MsalTokenCacheProvider>() is { } cacheStorageProvider)
+            var cacheStorageProvider = serviceProvider.GetService<MsalTokenCacheProvider>();
+            if (cacheStorageProvider is not null)
             {
                 cacheStorageProvider.RegisterCache(app.UserTokenCache);
                 cacheStorageProvider.RegisterCache(app.AppTokenCache);

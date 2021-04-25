@@ -9,7 +9,6 @@ using System.Net.Http;
 using System.Reflection;
 using System.Threading.Tasks;
 
-using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -17,6 +16,7 @@ using Microsoft.Extensions.Options;
 using Microsoft.Identity.Client;
 
 using THNETII.CommandLine.Hosting;
+using THNETII.Msal.Extensions.UserSecrets;
 
 namespace THNETII.Msal.SampleConsole
 {
@@ -94,13 +94,7 @@ namespace THNETII.Msal.SampleConsole
                 ;
 
             services.AddDataProtection();
-            services.AddSingleton(serviceProvider =>
-            {
-                var memCache = ActivatorUtilities.GetServiceOrCreateInstance
-                    <MemoryDistributedCache>(serviceProvider);
-                return ActivatorUtilities.CreateInstance
-                    <MsalTokenCacheProvider>(serviceProvider, memCache);
-            });
+            services.AddSingleton<MsalTokenCacheProvider, MsalTokenCacheUserSecretsProvider>();
         }
 
         private static void PostConfigureAbstractApplicationOptions(

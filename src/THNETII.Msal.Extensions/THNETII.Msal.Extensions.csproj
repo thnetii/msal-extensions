@@ -2,6 +2,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
+    <LangVersion>9</LangVersion>
     <TargetFrameworks>netstandard2.1;netcoreapp3.1;netstandard2.0</TargetFrameworks>
     <TargetFrameworks Condition="$([System.Runtime.InteropServices.RuntimeInformation]::ISOsPlatform($([System.Runtime.InteropServices.OSPlatform]::Windows)))">$(TargetFrameworks);net461</TargetFrameworks>
     <RootNamespace>Microsoft.Identity.Client</RootNamespace>
@@ -14,7 +15,6 @@
 
   <ItemGroup Label=".NET Generic Host">
     <PackageReference Include="Microsoft.AspNetCore.DataProtection.Abstractions" Version="3.1.9" />
-    <PackageReference Include="Microsoft.Extensions.Caching.Abstractions" Version="3.1.9" />
     <PackageReference Include="Microsoft.Extensions.Http" Version="3.1.9" />
   </ItemGroup>
 

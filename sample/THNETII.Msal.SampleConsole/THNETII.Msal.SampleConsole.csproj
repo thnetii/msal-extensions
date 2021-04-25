@@ -1,6 +1,7 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
+    <LangVersion>9</LangVersion>
     <OutputType>Exe</OutputType>
     <TargetFrameworks>netcoreapp3.1</TargetFrameworks>
     <TargetFrameworks Condition="$([System.Runtime.InteropServices.RuntimeInformation]::ISOsPlatform($([System.Runtime.InteropServices.OSPlatform]::Windows)))">$(TargetFrameworks);net461</TargetFrameworks>
@@ -8,12 +9,12 @@
   </PropertyGroup>
 
   <ItemGroup Label="MSAL.NET">
+    <ProjectReference Include="..\..\src\THNETII.Msal.Extensions.UserSecrets\THNETII.Msal.Extensions.UserSecrets.csproj" />
     <ProjectReference Include="..\..\src\THNETII.Msal.Extensions\THNETII.Msal.Extensions.csproj" />
   </ItemGroup>
 
   <ItemGroup Label=".NET Generic Host">
     <PackageReference Include="Microsoft.AspNetCore.DataProtection" Version="3.1.9" />
-    <PackageReference Include="Microsoft.Extensions.Caching.Memory" Version="3.1.9" />
     <PackageReference Include="Microsoft.Extensions.Configuration.UserSecrets" Version="3.1.9" />
     <ProjectReference Include="..\..\submodules\thnetii\dotnet-command-line\src\THNETII.CommandLine.Hosting\THNETII.CommandLine.Hosting.csproj" />
   </ItemGroup>

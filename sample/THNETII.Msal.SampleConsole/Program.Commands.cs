@@ -126,7 +126,7 @@ namespace THNETII.Msal.SampleConsole
 
         private static Command CreateAccountsCommand()
         {
-            var accCommand = new Command("accounts", "List all known cached commands")
+            var accCommand = new Command("accounts", "List all known cached accounts")
             { Handler = CommandLineHost.GetCommandHandler<ClientApplicationBaseAccountsExecutor>() };
 
             return accCommand;
