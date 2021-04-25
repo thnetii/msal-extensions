@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project>
+
+  <PropertyGroup>
+    <TargetsForTfmSpecificBuildOutput>$(TargetsForTfmSpecificBuildOutput);CopyPackageReferencesToPackage</TargetsForTfmSpecificBuildOutput>
+  </PropertyGroup>
+
+  <Target Name="CopyPackageReferencesToPackage">
+    <ItemGroup>
+      <BuildOutputInPackage Include="@(RuntimeCopyLocalItems->WithMetadataValue('NuGetPackageId', 'Microsoft.Identity.Client'))" />
+    </ItemGroup>
+  </Target>
+
+  <Target Name="AssignNugetVersionFromMsalPackageReferenceVersion"
+          BeforeTargets="_GenerateRestoreProjectSpec">
+    <PropertyGroup Condition="'$(VersionSuffix)' == ''">
+      <Version Condition="'%(PackageReference.Identity)' == 'Microsoft.Identity.Client'">%(PackageReference.Version)</Version>
+    </PropertyGroup>
+    <PropertyGroup Condition="'$(VersionSuffix)' != ''">
+      <Version Condition="'%(PackageReference.Identity)' == 'Microsoft.Identity.Client'">%(PackageReference.Version)-$(VersionSuffix)</Version>
+    </PropertyGroup>
+  </Target>
+
+  <Target Name="AssignNugetVersionFromMsalResolvedVersion"
+          AfterTargets="ResolvePackageAssets"
+          BeforeTargets="GetAssemblyVersion">
+    <PropertyGroup Condition="'$(VersionSuffix)' == ''">
+      <Version Condition="'%(ResolvedCompileFileDefinitions.NuGetPackageId)' == 'Microsoft.Identity.Client'">%(ResolvedCompileFileDefinitions.NuGetPackageVersion)</Version>
+    </PropertyGroup>
+    <PropertyGroup Condition="'$(VersionSuffix)' != ''">
+      <Version Condition="'%(ResolvedCompileFileDefinitions.NuGetPackageId)' == 'Microsoft.Identity.Client'">%(ResolvedCompileFileDefinitions.NuGetPackageVersion)-$(VersionSuffix)</Version>
+    </PropertyGroup>
+  </Target>
+
+  <Target Name="AssignPackageVersionFromMsalResolvedVersion"
+          BeforeTargets="SetPackageVersionToVersionWithBuildId;GenerateNuspec">
+    <PropertyGroup Condition="'$(VersionSuffix)' == ''">
+      <PackageVersion Condition="'%(PackageReference.Identity)' == 'Microsoft.Identity.Client'">%(PackageReference.Version)</PackageVersion>
+    </PropertyGroup>
+    <PropertyGroup Condition="'$(VersionSuffix)' != ''">
+      <PackageVersion Condition="'%(PackageReference.Identity)' == 'Microsoft.Identity.Client'">%(PackageReference.Version)-$(VersionSuffix)</PackageVersion>
+    </PropertyGroup>
+  </Target>
+  
+</Project>
