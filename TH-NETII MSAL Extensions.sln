@@ -28,17 +28,17 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "dotnet-command-line", "dotn
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{2B3459ED-C27E-41CD-B7FD-E64C765AEDCF}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "THNETII.CommandLine.Hosting", "submodules\thnetii\dotnet-command-line\src\THNETII.CommandLine.Hosting\THNETII.CommandLine.Hosting.csproj", "{CB6232B6-CE0A-4361-A5B4-77C83F230A1C}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "THNETII.CommandLine.Hosting", "submodules\thnetii\dotnet-command-line\src\THNETII.CommandLine.Hosting\THNETII.CommandLine.Hosting.csproj", "{CB6232B6-CE0A-4361-A5B4-77C83F230A1C}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "dotnet-logging", "dotnet-logging", "{1645E0CD-4FC9-4560-B7BB-FE264CEF34D0}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{1C413FCE-47A0-4A6C-AA18-8CCBD5D8AA41}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "THNETII.Logging.DiagnosticsForwarding", "submodules\thnetii\dotnet-logging\src\THNETII.Logging.DiagnosticsForwarding\THNETII.Logging.DiagnosticsForwarding.csproj", "{F10B65CA-F3B8-4432-8841-23AFE1B7D33E}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "THNETII.Logging.DiagnosticsForwarding", "submodules\thnetii\dotnet-logging\src\THNETII.Logging.DiagnosticsForwarding\THNETII.Logging.DiagnosticsForwarding.csproj", "{F10B65CA-F3B8-4432-8841-23AFE1B7D33E}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "THNETII.Msal.PowerShell", "src\THNETII.Msal.PowerShell\THNETII.Msal.PowerShell.csproj", "{268810A1-E27A-4273-BF9B-5938A0BB5AAD}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "THNETII.Msal.Extensions", "src\THNETII.Msal.Extensions\THNETII.Msal.Extensions.csproj", "{A358ECAB-36A3-45B8-9125-2790B938BEBD}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "THNETII.Msal.Extensions", "src\THNETII.Msal.Extensions\THNETII.Msal.Extensions.csproj", "{A358ECAB-36A3-45B8-9125-2790B938BEBD}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
