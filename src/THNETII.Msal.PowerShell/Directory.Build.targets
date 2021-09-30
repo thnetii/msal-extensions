@@ -1,45 +1,124 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Project>
-
-  <PropertyGroup>
-    <TargetsForTfmSpecificBuildOutput>$(TargetsForTfmSpecificBuildOutput);CopyPackageReferencesToPackage</TargetsForTfmSpecificBuildOutput>
-  </PropertyGroup>
-
-  <Target Name="CopyPackageReferencesToPackage">
+  <Target Name="AddResolvedCopyLocalPublishAssetsToBuildOutputInPackage"
+          DependsOnTargets="BuildOnlySettings;_ComputeResolvedCopyLocalPublishAssets">
     <ItemGroup>
-      <BuildOutputInPackage Include="@(RuntimeCopyLocalItems->WithMetadataValue('NuGetPackageId', 'Microsoft.Identity.Client'))" />
+      <BuildOutputInPackage Include="@(_ResolvedCopyLocalPublishAssets)">
+        <TargetPath>%(_ResolvedCopyLocalPublishAssets.DestinationSubPath)</TargetPath>
+      </BuildOutputInPackage>
     </ItemGroup>
   </Target>
 
-  <Target Name="AssignNugetVersionFromMsalPackageReferenceVersion"
-          BeforeTargets="_GenerateRestoreProjectSpec">
-    <PropertyGroup Condition="'$(VersionSuffix)' == ''">
-      <Version Condition="'%(PackageReference.Identity)' == 'Microsoft.Identity.Client'">%(PackageReference.Version)</Version>
-    </PropertyGroup>
-    <PropertyGroup Condition="'$(VersionSuffix)' != ''">
-      <Version Condition="'%(PackageReference.Identity)' == 'Microsoft.Identity.Client'">%(PackageReference.Version)-$(VersionSuffix)</Version>
+  <PropertyGroup>
+    <GenerateNuspecDependsOn>DisablePackingAfterGeneratingNuspec;$(GenerateNuspecDependsOn)</GenerateNuspecDependsOn>
+  </PropertyGroup>
+
+  <Target Name="DisablePackingAfterGeneratingNuspec"
+          Condition="'$(NuspecFile)'==''"
+          DependsOnTargets="_IntermediatePack">
+    <PropertyGroup>
+      <ContinuePackingAfterGeneratingNuspec>false</ContinuePackingAfterGeneratingNuspec>
     </PropertyGroup>
   </Target>
 
-  <Target Name="AssignNugetVersionFromMsalResolvedVersion"
-          AfterTargets="ResolvePackageAssets"
-          BeforeTargets="GetAssemblyVersion">
-    <PropertyGroup Condition="'$(VersionSuffix)' == ''">
-      <Version Condition="'%(ResolvedCompileFileDefinitions.NuGetPackageId)' == 'Microsoft.Identity.Client'">%(ResolvedCompileFileDefinitions.NuGetPackageVersion)</Version>
+  <Target Name="PackStripTfm"
+          Condition="'$(NuspecFile)'==''"
+          AfterTargets="GenerateNuspec"
+          DependsOnTargets="_CalculateInputsOutputsForPack"
+          Inputs="@(NuGetPackOutput->WithMetadataValue('Extension', '.nuspec'))"
+          Outputs="@(NuGetPackOutput->WithMetadataValue('Extension', '.nupkg'))">
+
+    <ItemGroup>
+      <_GeneratedWithTfmNuspec Include="@(NuGetPackOutput->WithMetadataValue('Extension', '.nuspec'))" Condition="Exists('%(FullPath)')" />
+      <_IntermediateTfmAgnosticNuspec Include="@(_GeneratedWithTfmNuspec->'$(IntermediateOutputPath)%(Filename).int.nuspec')" />
+    </ItemGroup>
+
+    <PropertyGroup>
+      <_NuspecStripTargetFrameworkXsl>
+        <xsl:stylesheet version="1.0"
+          xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
+          xmlns:ns="http://schemas.microsoft.com/packaging/2012/06/nuspec.xsd" >
+          <!--empty template suppresses match-->
+          <xsl:template match="/ns:package/ns:metadata/ns:dependencies/ns:group/@targetFramework" />
+          <!--identity template copies everything forward by default-->
+          <xsl:template match="@*|node()">
+            <xsl:copy>
+              <xsl:apply-templates select="@*|node()"/>
+            </xsl:copy>
+          </xsl:template>
+        </xsl:stylesheet>
+      </_NuspecStripTargetFrameworkXsl>
     </PropertyGroup>
-    <PropertyGroup Condition="'$(VersionSuffix)' != ''">
-      <Version Condition="'%(ResolvedCompileFileDefinitions.NuGetPackageId)' == 'Microsoft.Identity.Client'">%(ResolvedCompileFileDefinitions.NuGetPackageVersion)-$(VersionSuffix)</Version>
-    </PropertyGroup>
+
+    <XslTransformation
+      XmlInputPaths="@(_GeneratedWithTfmNuspec)"
+      OutputPaths="@(_IntermediateTfmAgnosticNuspec)"
+      XslContent="$(_NuspecStripTargetFrameworkXsl)" />
+
+    <Move
+      SourceFiles="@(_IntermediateTfmAgnosticNuspec)"
+      DestinationFiles="@(_GeneratedWithTfmNuspec)">
+      <Output TaskParameter="MovedFiles" ItemName="_TfmAgnosticNuspec" />
+    </Move>
+
+    <ItemGroup>
+      <!-- Cleanup intermeditate items  -->
+      <_GeneratedWithTfmNuspec Remove="@(_GeneratedWithTfmNuspec)" />
+      <_IntermediateTfmAgnosticNuspec Remove="@(_IntermediateTfmAgnosticNuspec)" />
+    </ItemGroup>
+
+    <MSBuild Targets="Pack" Projects="$(MSBuildProjectFile)"
+             Properties="NuspecFile=%(_TfmAgnosticNuspec.FullPath);ContinuePackingAfterGeneratingNuspec=true;" />
+
   </Target>
 
-  <Target Name="AssignPackageVersionFromMsalResolvedVersion"
-          BeforeTargets="SetPackageVersionToVersionWithBuildId;GenerateNuspec">
-    <PropertyGroup Condition="'$(VersionSuffix)' == ''">
-      <PackageVersion Condition="'%(PackageReference.Identity)' == 'Microsoft.Identity.Client'">%(PackageReference.Version)</PackageVersion>
+  <Target Name="GeneratePowerShellModuleManifest"
+          BeforeTargets="_GetPackageFiles;GenerateNuspec"
+          DependsOnTargets="_WalkEachTargetPerFramework;InferProjectUrlFromGitHubRepositoryUrl">
+    <PropertyGroup>
+      <_PowerShellModuleManifestText>@{
+  ModuleVersion = '$(PackageVersion)'
+  Author = '$(Authors)'
+  CompanyName = '$(Company)'
+  Copyright = '$(Copyright)'
+  Description = @"
+$(PackageDescription)
+"@
+  PowerShellVersion = '5.1'
+  DotNetFrameworkVersion = '4.6.1'
+  CompatiblePSEditions = 'Core', 'Desktop'
+  NestedModules = if($PSEdition -eq 'Core') {
+    @(_BuildOutputInPackage->WithMetadataValue('TargetFramework', 'netcoreapp3.1')->WithMetadataValue('AssetType', 'runtime')->'".\lib\%(TargetFramework)\%(TargetPath)"', ', ')
+  } elseif ($PSEdition -eq 'Desktop') {
+    @(_BuildOutputInPackage->WithMetadataValue('TargetFramework', 'net461')->WithMetadataValue('AssetType', 'runtime')->'".\lib\%(TargetFramework)\%(TargetPath)"', ', ')
+  }
+  PrivateData = @{
+    PSData = @{
+      Tags = @(
+        "$([System.String]::Join('", "', $(PackageTags.Split(' '))))"
+      )
+      LicenseUri = '$(PackageLicenseUrl)'
+      ProjectUri = '$(PackageProjectUrl)'
+      ReleaseNotes = @"
+$(PackageReleaseNotes)
+"@
+      RequireLicenseAcceptance = '$(PackageRequireLicenseAcceptance)' -eq 'true'
+    }
+  }
+}
+      </_PowerShellModuleManifestText>
+      <PowerShellModuleManifestFilePath>$(BaseIntermediateOutputPath)$(Configuration)\$(PackageId).psd1</PowerShellModuleManifestFilePath>
     </PropertyGroup>
-    <PropertyGroup Condition="'$(VersionSuffix)' != ''">
-      <PackageVersion Condition="'%(PackageReference.Identity)' == 'Microsoft.Identity.Client'">%(PackageReference.Version)-$(VersionSuffix)</PackageVersion>
-    </PropertyGroup>
+
+    <WriteLinesToFile Encoding="UTF-8" Overwrite="true"
+                      Lines="$(_PowerShellModuleManifestText)"
+                      File="$(PowerShellModuleManifestFilePath)" />
+
+    <ItemGroup>
+      <None Include="$(PowerShellModuleManifestFilePath)" Pack="True">
+        <PackagePath></PackagePath>
+      </None>
+    </ItemGroup>
   </Target>
-  
+
 </Project>

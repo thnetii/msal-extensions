@@ -3,30 +3,44 @@
   <PropertyGroup>
     <TargetFrameworks>netcoreapp3.1;net461</TargetFrameworks>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <IncludeSymbols>false</IncludeSymbols>
+    <SymbolPackageFormat></SymbolPackageFormat>
+    <NoWarn>$(NoWarn);NU5128</NoWarn>
+    <PackageTags>PSModule PSEdition_Desktop PSEdition_Core</PackageTags>
   </PropertyGroup>
 
   <PropertyGroup>
-    <PackageTags>PSModule</PackageTags>
+    <TargetsForTfmSpecificBuildOutput>$(TargetsForTfmSpecificBuildOutput);AddResolvedCopyLocalPublishAssetsToBuildOutputInPackage</TargetsForTfmSpecificBuildOutput>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.Identity.Client">
-      <Version>4.20.1</Version>
+    <PackageReference Include="Microsoft.Identity.Client.Desktop">
+      <Version>4.36.2</Version>
+      <PrivateAssets>All</PrivateAssets>
+      <Publish>true</Publish>
+    </PackageReference>
+  </ItemGroup>
+
+  <ItemGroup Condition=" '$(TargetFramework)' == 'netcoreapp3.1' ">
+    <PackageReference Include="System.Management.Automation">
+      <Version>7.0.3</Version>
+      <PrivateAssets>All</PrivateAssets>
+    </PackageReference>
+  </ItemGroup>
+  <ItemGroup Condition=" $([MSBuild]::GetTargetFrameworkIdentifier('$(TargetFramework)')) == '.NETFramework' ">
+    <PackageReference Include="Microsoft.PowerShell.5.ReferenceAssemblies">
+      <Version>1.1.0</Version>
       <PrivateAssets>All</PrivateAssets>
     </PackageReference>
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="PowerShellStandard.Library">
-      <Version>5.1.0</Version>
-      <PrivateAssets>All</PrivateAssets>
-    </PackageReference>
+    <Compile Include="..\THNETII.Msal.Extensions\MsalHttpClient.cs" />
   </ItemGroup>
 
   <ItemGroup>
-    <None Include="Microsoft.Identity.Client.LICENSE">
-      <Pack>True</Pack>
-      <PackagePath>\</PackagePath>
+    <None Include="*.ps1;*.psm1;*.psd1">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
   </ItemGroup>
 
