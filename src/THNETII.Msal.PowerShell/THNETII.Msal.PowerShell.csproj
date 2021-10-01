@@ -3,8 +3,6 @@
   <PropertyGroup>
     <TargetFrameworks>netcoreapp3.1;net461</TargetFrameworks>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-    <IncludeSymbols>false</IncludeSymbols>
-    <SymbolPackageFormat></SymbolPackageFormat>
     <NoWarn>$(NoWarn);NU5128</NoWarn>
     <PackageTags>PSModule PSEdition_Desktop PSEdition_Core</PackageTags>
   </PropertyGroup>
