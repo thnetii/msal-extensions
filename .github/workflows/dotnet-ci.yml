@@ -1,0 +1,139 @@
+on:
+  pull_request: {}
+  push:
+    branches:
+      - main
+      - releases/**
+  workflow_dispatch: {}
+
+defaults:
+  run:
+    shell: pwsh
+
+jobs:
+  dotnet:
+    strategy:
+      matrix:
+        configuration:
+          - release
+          - debug
+        runtime:
+          - agnostic
+          - ubuntu
+          - macos
+          - windows
+        include:
+          - msbuild.arguments: |
+              -property:BuildId=${{ github.run_number }}
+              -property:BuildSourceBranch=${{ github.ref }}
+              -consoleLoggerParameters:NoSummary
+          - configuration: release
+            configuration.id: Release
+            configuration.display: Release
+          - configuration: debug
+            configuration.id: Debug
+            configuration.display: Debug
+          - runtime: agnostic
+            os: ubuntu-latest
+          - runtime: ubuntu
+            os: ubuntu-latest
+            runtime.id: linux-x64
+            runtime.display: (Linux x64)
+            artifact.name.suffix: -linux-x64
+          - runtime: macos
+            os: macos-10.15
+            runtime.id: osx.10.15-x64
+            runtime.display: (macOS 10.15 Catalina)
+            artifact.name.suffix: -osx-x64
+          - runtime: windows
+            os: windows-latest
+            runtime.id: win10-x64
+            runtime.display: (Windows 10 x64)
+            artifact.name.suffix: -win-x64
+        exclude:
+          - configuration: debug
+            runtime: ubuntu
+          - configuration: debug
+            runtime: macos
+          - configuration: debug
+            runtime: windows
+    name: ${{ matrix['configuration.display'] }} ${{ matrix['runtime.display'] }}
+    runs-on: ${{ matrix.os }}
+    steps:
+      - id: checkout
+        name: Chekout ${{ github.repository }}@${{ github.ref }}
+        uses: actions/checkout@v2
+        with:
+          submodules: recursive
+      - id: prepare_sdk
+        name: Prepare .NET SDK action
+        uses: thnetii/gh-actions/typescript-action-prepare@main
+        with:
+          action-name: dotnet-sdk
+      - name: .NET Version Information
+        uses: thnetii/gh-actions/dotnet-version-info@main
+      - name: dotnet restore
+        uses: thnetii/gh-actions/dotnet-sdk@main
+        with:
+          command: restore
+          project: |
+            [Rr]ef/**/*.*proj
+            [Ss]rc/**/*.*proj
+            [Tt]ests?/**/*.*proj
+            [Ss]amples?/**/*.*proj
+          configuration: ${{ matrix['configuration.id'] }}
+          runtime: ${{ matrix['runtime.id'] }}
+          msbuild-arguments: ${{ matrix['msbuild.arguments'] }}
+      - name: dotnet build
+        uses: thnetii/gh-actions/dotnet-sdk@main
+        with:
+          command: build
+          project: |
+            [Rr]ef/**/*.*proj
+            [Ss]rc/**/*.*proj
+            [Tt]ests?/**/*.*proj
+            [Ss]amples?/**/*.*proj
+          configuration: ${{ matrix['configuration.id'] }}
+          runtime: ${{ matrix['runtime.id'] }}
+          dotnet-arguments: --nologo
+          msbuild-arguments: |
+            -property:GeneratePackageOnBuild=false
+            ${{ matrix['msbuild.arguments'] }}
+      - name: dotnet pack
+        if: ${{ matrix['runtime'] == 'agnostic' }}
+        uses: thnetii/gh-actions/dotnet-sdk@main
+        with:
+          command: pack
+          project: |
+            [Ss]rc/**/*.*proj
+          configuration: ${{ matrix['configuration.id'] }}
+          runtime: ${{ matrix['runtime.id'] }}
+          dotnet-arguments: --nologo
+          msbuild-arguments: |
+            -property:PackageOutputPath=${{ github.workspace }}/packages/bld
+            ${{ matrix['msbuild.arguments'] }}
+      - name: Upload Nuget artifacts
+        if: ${{ matrix['runtime'] == 'agnostic' }}
+        uses: actions/upload-artifact@v2
+        with:
+          name: ${{ github.repository_owner }}-${{ github.event.repository.name }}-nupkg-${{ matrix.configuration }}
+          path: packages/bld
+      - name: dotnet publish
+        uses: thnetii/gh-actions/dotnet-sdk@main
+        with:
+          command: build
+          project: |
+            [Ss]rc/**/*.*proj
+            [Ss]amples?/**/*.*proj
+          configuration: ${{ matrix['configuration.id'] }}
+          runtime: ${{ matrix['runtime.id'] }}
+          dotnet-arguments: --nologo
+          msbuild-arguments: |
+            -property:InnerTargets=Publish
+            ${{ matrix['msbuild.arguments'] }}
+      - name: Upload Publish artifacts
+        uses: actions/upload-artifact@v2
+        with:
+          name: ${{ github.repository_owner }}-${{ github.event.repository.name }}-publish-${{ matrix.configuration }}${{ matrix['artifact.name.suffix'] }}
+          path: publish
+
