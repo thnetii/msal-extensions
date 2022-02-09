@@ -15,7 +15,7 @@
 
   <ItemGroup Label=".NET Generic Host">
     <PackageReference Include="Microsoft.AspNetCore.DataProtection" Version="3.1.9" />
-    <PackageReference Include="Microsoft.Extensions.Configuration.UserSecrets" Version="3.1.9" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.UserSecrets" Version="6.0.1" />
     <ProjectReference Include="..\..\submodules\thnetii\dotnet-command-line\src\THNETII.CommandLine.Hosting\THNETII.CommandLine.Hosting.csproj" />
   </ItemGroup>
 
