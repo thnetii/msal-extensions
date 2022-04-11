@@ -114,7 +114,7 @@ jobs:
             ${{ matrix['msbuild.arguments'] }}
       - name: Upload Nuget artifacts
         if: ${{ matrix['runtime'] == 'agnostic' }}
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: ${{ github.repository_owner }}-${{ github.event.repository.name }}-nupkg-${{ matrix.configuration }}
           path: packages/bld
@@ -132,7 +132,7 @@ jobs:
             -property:InnerTargets=Publish
             ${{ matrix['msbuild.arguments'] }}
       - name: Upload Publish artifacts
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: ${{ github.repository_owner }}-${{ github.event.repository.name }}-publish-${{ matrix.configuration }}${{ matrix['artifact.name.suffix'] }}
           path: publish
